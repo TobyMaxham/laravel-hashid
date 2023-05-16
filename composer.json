@@ -1,0 +1,41 @@
+{
+    "name": "tobymaxham/laravel-hashid",
+    "description": "This package enables support for hashed ID's in your laravel application.",
+    "keywords": [
+        "TobyMaxham",
+        "laravel",
+        "hashid"
+    ],
+    "homepage": "https://github.com/TobyMaxham/laravel-hashid",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": ":TobyMaxham",
+            "email": "git@maxham.de",
+            "role": "Developer"
+        }
+    ],
+    "require": {
+        "php": "^8.2",
+        "hashids/hashids": "^4.1",
+        "illuminate/support": "^10.0",
+        "illuminate/database": "^10.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "TobyMaxham\\HashId\\": "src"
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "TobyMaxham\\HashId\\HashIdServiceProvider"
+            ]
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
