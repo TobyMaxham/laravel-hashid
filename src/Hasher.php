@@ -14,7 +14,11 @@ trait Hasher
 
     public function resolveRouteBinding($value, $field = null): ?\Illuminate\Database\Eloquent\Model
     {
-        $id = $this->decodeId($value);
+        try {
+            $id = $this->decodeId($value);
+        } catch (\Exception $e) {
+            return null;
+        }
 
         return parent::resolveRouteBinding($id, $field);
     }
