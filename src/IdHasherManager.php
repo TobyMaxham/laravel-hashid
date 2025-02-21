@@ -5,7 +5,7 @@ namespace TobyMaxham\HashId;
 use Hashids\Hashids;
 use Illuminate\Support\Str;
 
-class IdHasher
+class IdHasherManager
 {
 
     protected $prefix;
@@ -22,7 +22,7 @@ class IdHasher
         return $this->prefix.$this->hasher->encode($id);
     }
 
-    public function decodeId($hash)
+    public function decodeId($hash, bool $throw = true)
     {
         if (Str::startsWith($hash, $this->prefix)) {
             $result = $this->hasher->decode(Str::after($hash, $this->prefix));
@@ -32,7 +32,11 @@ class IdHasher
             }
         }
 
-        throw new \Exception('WrongIdException');
+        if($throw && ! config('hashids.disable_exception', false)) {
+            $class = config('hashids.exception', WrongIdException::class);
+
+            throw new $class( config('hashids.exception_message', 'WrongIdException') );
+        }
     }
 
     public function setHasher(Hashids $hasher)

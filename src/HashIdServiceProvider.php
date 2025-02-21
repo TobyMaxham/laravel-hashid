@@ -20,8 +20,8 @@ class HashIdServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->app->bind(IdHasher::class, function () {
-            $instance = new IdHasher();
+        $this->app->bind(IdHasherManager::class, function () {
+            $instance = new IdHasherManager();
             $instance->setHasher(new Hashids(
                 config('hashids.salt'),
                 config('hashids.length'),
@@ -30,5 +30,7 @@ class HashIdServiceProvider extends ServiceProvider
 
             return $instance;
         });
+
+        $this->app->alias(IdHasherManager::class, 'idhasher');
     }
 }

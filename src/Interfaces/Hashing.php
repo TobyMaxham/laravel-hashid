@@ -1,6 +1,6 @@
 <?php
 
-namespace TobyMaxham\HashId;
+namespace TobyMaxham\HashId\Interfaces;
 
 interface Hashing
 {
