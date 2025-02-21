@@ -2,6 +2,7 @@
 
 namespace TobyMaxham\HashId;
 
+use Illuminate\Support\Str;
 use TobyMaxham\HashId\Facades\IdHasher;
 
 /**
@@ -28,8 +29,13 @@ trait Hasher
         return IdHasher::decodeId($value, $throw);
     }
 
-    public function hashID()
+    public function hashID(): ?string
     {
         return $this->getRouteKey();
+    }
+
+    public function safeHashID(): ?string
+    {
+        return Str::of($this->hashID())->after(config('hashids.prefix'));
     }
 }
