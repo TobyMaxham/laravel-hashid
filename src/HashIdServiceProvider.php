@@ -21,7 +21,7 @@ class HashIdServiceProvider extends ServiceProvider
     public function register()
     {
         $this->app->bind(IdHasherManager::class, function () {
-            $instance = new IdHasherManager();
+            $instance = new IdHasherManager;
             $instance->setHasher(new Hashids(
                 config('hashids.salt'),
                 config('hashids.length'),

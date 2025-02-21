@@ -4,10 +4,10 @@ namespace TobyMaxham\HashId;
 
 use Hashids\Hashids;
 use Illuminate\Support\Str;
+use TobyMaxham\HashId\Exceptions\WrongIdException;
 
 class IdHasherManager
 {
-
     protected $prefix;
 
     private Hashids $hasher;
@@ -32,10 +32,10 @@ class IdHasherManager
             }
         }
 
-        if($throw && ! config('hashids.disable_exception', false)) {
+        if ($throw && ! config('hashids.disable_exception', false)) {
             $class = config('hashids.exception', WrongIdException::class);
 
-            throw new $class( config('hashids.exception_message', 'WrongIdException') );
+            throw new $class(config('hashids.exception_message', 'WrongIdException'));
         }
     }
 
