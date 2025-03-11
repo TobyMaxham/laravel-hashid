@@ -1,6 +1,7 @@
-# Laravel HashID - Sicheres Kodieren von IDs
+[![Laravel HashID][laravel-hashid-image]][laravel-hashid-edit-link]
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/tobymaxham/laravel-hashid.svg?style=flat-square)](https://packagist.org/packages/tobymaxham/laravel-hashid)
+[![MIT Licensed](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Total Downloads](https://img.shields.io/packagist/dt/tobymaxham/laravel-hashid.svg?style=flat-square)](https://packagist.org/packages/tobymaxham/laravel-hashid)
 [![Support me on Patreon](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3DTobymaxham%26type%3Dpatrons&style=flat)](https://patreon.com/Tobymaxham)
 
@@ -131,3 +132,6 @@ If you've found a bug regarding security please mail git@maxham.de instead of us
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
 
+
+[laravel-hashid-image]: https://socialify.git.ci/TobyMaxham/laravel-hashid/image?description=1&font=Raleway&issues=1&language=1&owner=1&pattern=Charlie%20Brown&pulls=1&stargazers=1&theme=Light
+[laravel-hashid-edit-link]: https://socialify.git.ci/TobyMaxham/laravel-hashid?description=1&font=Raleway&issues=1&language=1&owner=1&pattern=Charlie%20Brown&pulls=1&stargazers=1&theme=Light
