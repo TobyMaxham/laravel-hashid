@@ -2,6 +2,11 @@
 
 All notable changes to `tobymaxham/laravel-hashid` will be documented in this file
 
+## 1.1 - 2025-04-12
+
+- Added support for Laravel 12
+- Added some git and editorconfig files
+
 ## 1.0 - 2025-02-21
 
 - Cleaned up the code

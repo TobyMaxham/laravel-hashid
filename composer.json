@@ -18,13 +18,16 @@
     "require": {
         "php": "^8.2",
         "hashids/hashids": "^4.1",
-        "illuminate/support": "^10.0|^11.0",
-        "illuminate/database": "^10.0|^11.0"
+        "illuminate/support": "^10.0|^11.0|^12.0",
+        "illuminate/database": "^10.0|^11.0|^12.0"
     },
     "autoload": {
         "psr-4": {
             "TobyMaxham\\HashId\\": "src"
         }
+    },
+    "require-dev": {
+        "laravel/pint": "^1.21"
     },
     "config": {
         "sort-packages": true
@@ -40,8 +43,5 @@
         "cs-fix": "./vendor/bin/pint src/"
     },
     "minimum-stability": "dev",
-    "prefer-stable": true,
-    "require-dev": {
-        "laravel/pint": "^1.21"
-    }
+    "prefer-stable": true
 }
