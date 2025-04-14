@@ -3,6 +3,7 @@
 namespace TobyMaxham\HashId;
 
 use Hashids\Hashids;
+use RuntimeException;
 use Illuminate\Support\ServiceProvider;
 
 class HashIdServiceProvider extends ServiceProvider
@@ -18,8 +19,17 @@ class HashIdServiceProvider extends ServiceProvider
         );
     }
 
+    /**
+     * @throws RuntimeException
+     */
     public function register()
     {
+        if (! \extension_loaded('gmp') && ! \extension_loaded('bcmath')) {
+            throw new RuntimeException(
+                'Missing required PHP extension: either GMP or BCMath must be installed for hashids/hashids to work.'
+            );
+        }
+
         $this->app->bind(IdHasherManager::class, function () {
             $instance = new IdHasherManager;
             $instance->setHasher(new Hashids(
