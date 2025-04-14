@@ -19,6 +19,8 @@ You can install the package via composer:
 composer require tobymaxham/laravel-hashid
 ```
 
+> This package relies on `hashids/hashids`, which requires either the GMP or BCMath extension. GMP is recommended for best performance and should be installed if possible.
+
 
 ## Configuration
 

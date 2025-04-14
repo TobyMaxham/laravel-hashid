@@ -29,6 +29,10 @@
     "require-dev": {
         "laravel/pint": "^1.21"
     },
+    "suggest": {
+        "ext-gmp": "Recommended for best performance with hashids/hashids.",
+        "ext-bcmath": "Alternative to GMP. At least one is required."
+    },
     "config": {
         "sort-packages": true
     },
