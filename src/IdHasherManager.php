@@ -24,8 +24,8 @@ class IdHasherManager
 
     public function decodeId($hash, bool $throw = true)
     {
-        if (Str::startsWith($hash, $this->prefix)) {
-            $result = $this->hasher->decode(Str::after($hash, $this->prefix));
+        if (empty($this->prefix) || Str::startsWith($hash, $this->prefix)) {
+            $result = $this->hasher->decode(empty($this->prefix) ? $hash : Str::after($hash, $this->prefix));
 
             if (count($result) > 0) {
                 return $result[0]; // result is always an array due to quirk in Hashids library
