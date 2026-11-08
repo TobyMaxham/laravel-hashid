@@ -6,12 +6,22 @@ All notable changes to `tobymaxham/laravel-hashid` will be documented in this fi
 
 ### Breaking Changes
 
-_To be completed during development. Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
+_Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
+
+- `Hasher` now overrides `resolveRouteBindingQuery()` instead of `resolveRouteBinding()`
+- An invalid hash in `resolveRouteBinding()` now throws `ModelNotFoundException` instead of returning `null` (no database query is made)
+- `Hasher` can no longer be combined with Laravel's `HasUuids` / `HasUlids` traits
 
 ### Added
 
 - Test suite with Pest and Orchestra Testbench
 - GitHub Actions workflow for tests and code style
+
+### Fixed
+
+- Route bindings with a custom field (e.g. `{product:slug}`) no longer try to decode the value as a hash
+- Scoped child route bindings (e.g. `products/{product}/reviews/{review}`) now decode the hash
+- Routes with `->withTrashed()` now find soft deleted models by their hash
 
 ### Changed
 

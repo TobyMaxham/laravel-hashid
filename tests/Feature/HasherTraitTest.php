@@ -1,10 +1,13 @@
 <?php
 
+use Illuminate\Support\Str;
+use Illuminate\Support\Facades\DB;
 use TobyMaxham\HashId\Facades\IdHasher;
 use TobyMaxham\HashId\Interfaces\Hashing;
 use TobyMaxham\HashId\Tests\Fixtures\Product;
 use TobyMaxham\HashId\Tests\Fixtures\Document;
 use TobyMaxham\HashId\Tests\Fixtures\BaseProduct;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 it('uses the hash as route key', function () {
     $product = Product::create(['name' => 'A']);
@@ -42,29 +45,59 @@ it('resolves the model from a hash', function () {
     expect($resolved->is($product))->toBeTrue();
 });
 
-it('returns null for an invalid hash', function (string $value) {
+it('throws ModelNotFoundException for an invalid hash', function (string $value) {
     Product::create(['name' => 'A']);
 
-    expect((new Product)->resolveRouteBinding($value))->toBeNull();
+    (new Product)->resolveRouteBinding($value);
 })->with([
     'garbage' => 'h:invalid',
     'raw id'  => '1',
-]);
+])->throws(ModelNotFoundException::class);
 
-it('returns null for a hash without the prefix', function () {
+it('throws ModelNotFoundException for a hash without the prefix', function () {
     $product = Product::create(['name' => 'A']);
 
-    expect((new Product)->resolveRouteBinding((string) $product->safeHashID()))->toBeNull();
+    (new Product)->resolveRouteBinding((string) $product->safeHashID());
+})->throws(ModelNotFoundException::class);
+
+it('does not query the database for an invalid hash', function () {
+    DB::enableQueryLog();
+
+    try {
+        (new Product)->resolveRouteBinding('h:invalid');
+    } catch (ModelNotFoundException) {
+    }
+
+    expect(DB::getQueryLog())->toBeEmpty();
 });
 
 it('returns null for a valid hash of a missing record', function () {
     expect((new Product)->resolveRouteBinding(IdHasher::encodeId(999)))->toBeNull();
 });
 
-it('returns null instead of throwing even when exceptions are enabled', function () {
+it('throws ModelNotFoundException instead of the configured exception', function () {
     config()->set('hashids.disable_exception', false);
 
-    expect((new Product)->resolveRouteBinding('h:invalid'))->toBeNull();
+    (new Product)->resolveRouteBinding('h:invalid');
+})->throws(ModelNotFoundException::class);
+
+it('does not decode custom route fields', function () {
+    $product = Product::create(['name' => 'A', 'slug' => 'laptop']);
+
+    expect((new Product)->resolveRouteBinding('laptop', 'slug')->is($product))->toBeTrue();
+});
+
+it('decodes the route key also when it is passed explicitly', function (string $field) {
+    $product = Product::create(['name' => 'A']);
+
+    expect((new Product)->resolveRouteBinding($product->hashID(), $field)->is($product))->toBeTrue();
+})->with(['id', 'products.id']);
+
+it('resolves soft deleted models with resolveSoftDeletableRouteBinding()', function () {
+    $product = Product::create(['name' => 'A']);
+    $product->delete();
+
+    expect((new Product)->resolveSoftDeletableRouteBinding($product->hashID())->is($product))->toBeTrue();
 });
 
 it('works the same with the ModelWithHasher base class', function () {
@@ -84,7 +117,7 @@ it('creates the same hash for the same id in different models', function () {
 
 it('cannot hash non-integer keys yet', function () {
     // Documents the current behavior: UUID keys produce an empty hash.
-    $document = Document::create(['name' => 'A']);
+    $document = Document::create(['id' => (string) Str::uuid(), 'name' => 'A']);
 
     expect($document->hashID())->toBe('h:');
 });

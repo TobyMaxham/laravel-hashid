@@ -58,14 +58,14 @@ it('resolves routes with a custom field like {product:slug}', function () {
     Product::create(['name' => 'Laptop', 'slug' => 'laptop']);
 
     $this->get('slug/laptop')->assertOk()->assertSee('Laptop');
-})->skip('Bug: custom route fields are decoded as hash (New-Version.md 9.1)');
+});
 
 it('resolves scoped child bindings', function () {
     $product = Product::create(['name' => 'Laptop']);
     $review = $product->reviews()->create(['body' => 'Great']);
 
     $this->get("products/{$product->hashID()}/reviews/{$review->hashID()}")->assertOk()->assertSee('Great');
-})->skip('Bug: scoped child bindings ignore the hash (New-Version.md 9.2)');
+});
 
 it('accepts the safeHashID in routes', function () {
     $product = Product::create(['name' => 'Laptop']);
@@ -78,4 +78,24 @@ it('resolves soft deleted models on withTrashed routes', function () {
     $product->delete();
 
     $this->get('trashed/'.$product->hashID())->assertOk()->assertSee('Laptop');
-})->skip('Bug: withTrashed routes ignore the hash (New-Version.md 9.2)');
+});
+
+it('returns 404 for a child that belongs to another parent', function () {
+    $product = Product::create(['name' => 'Laptop']);
+    $other = Product::create(['name' => 'Phone']);
+    $review = $other->reviews()->create(['body' => 'Great']);
+
+    $this->get("products/{$product->hashID()}/reviews/{$review->hashID()}")->assertNotFound();
+});
+
+it('returns 404 for an invalid child hash', function () {
+    $product = Product::create(['name' => 'Laptop']);
+
+    $this->get("products/{$product->hashID()}/reviews/h:invalid")->assertNotFound();
+});
+
+it('returns 404 for an unknown custom field value', function () {
+    Product::create(['name' => 'Laptop', 'slug' => 'laptop']);
+
+    $this->get('slug/phone')->assertNotFound();
+});

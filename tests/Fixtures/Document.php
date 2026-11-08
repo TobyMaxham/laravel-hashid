@@ -4,14 +4,20 @@ namespace TobyMaxham\HashId\Tests\Fixtures;
 
 use TobyMaxham\HashId\Hasher;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+/**
+ * String (UUID) primary key without HasUuids,
+ * because HasUuids and Hasher both define resolveRouteBindingQuery().
+ */
 class Document extends Model
 {
     use Hasher;
-    use HasUuids;
 
     public $timestamps = false;
+
+    public $incrementing = false;
+
+    protected $keyType = 'string';
 
     protected $guarded = [];
 }
