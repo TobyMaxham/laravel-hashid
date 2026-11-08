@@ -3,6 +3,7 @@
 namespace TobyMaxham\HashId\Tests;
 
 use Illuminate\Support\Facades\Schema;
+use TobyMaxham\HashId\IdHasherManager;
 use TobyMaxham\HashId\Facades\IdHasher;
 use Illuminate\Database\Schema\Blueprint;
 use TobyMaxham\HashId\HashIdServiceProvider;
@@ -51,6 +52,7 @@ abstract class TestCase extends Orchestra
             config()->set('hashids.'.$key, $value);
         }
 
+        app()->forgetInstance(IdHasherManager::class);
         IdHasher::clearResolvedInstances();
     }
 }

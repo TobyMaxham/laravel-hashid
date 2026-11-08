@@ -2,6 +2,38 @@
 
 Version 2.0 contains breaking changes. Please check every point below.
 
+## All hashes change (hashes per model)
+
+**This is the most important change.** In 1.x all models shared the same hashes, so user `400` and post `400` had the same hash.
+In 2.0 every model gets its own hashes. **All existing hashes change**, e.g. links in emails, bookmarks or ids stored in other systems.
+
+**To keep the 1.x hashes**, disable it:
+
+```dotenv
+HASH_PER_MODEL=false
+```
+
+or in your published `config/hashids.php`:
+
+```php
+'per_model' => env('HASH_PER_MODEL', false),
+```
+
+If you enable it, the model key is added to the salt. By default this is the table name.
+Set a fixed key with `HASH_ID_KEY`, `$hashIdKey` or `hashIdKey()` if the table name may change later (see readme).
+
+**Methods added to the `Hasher` trait:** `hashIdKey()`, `hashIdPrefix()` and `hashIdManager()`.
+If your model already has methods or properties with these names, rename them.
+
+`IdHasher::encodeId()` / `decodeId()` still use the global salt. Use `IdHasher::for(User::class)` for the hashes of a model.
+
+## Service provider
+
+- `IdHasherManager` is a singleton now. It creates its `Hashids` instance itself; `setHasher()` still exists.
+- New constructor: `new IdHasherManager(?string $prefix = null, ?string $prefixMode = null, ?string $salt = null)`.
+- A missing GMP/BCMath extension throws on the first hash instead of on boot.
+- Publish the config with `php artisan vendor:publish --tag=hashid-config` and add the new keys `prefix_mode` and `per_model` to your published file.
+
 ## Route binding
 
 ### `resolveRouteBindingQuery()` instead of `resolveRouteBinding()`

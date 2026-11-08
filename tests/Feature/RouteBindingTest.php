@@ -32,9 +32,10 @@ it('returns 404 for invalid values', function (string $value) {
 
     $this->get('products/'.$value)->assertNotFound();
 })->with([
-    'raw id'     => '1',
-    'garbage'    => 'h:invalid',
-    'unknown id' => fn () => IdHasher::encodeId(999),
+    'raw id'      => '1',
+    'garbage'     => 'h:invalid',
+    'unknown id'  => fn () => IdHasher::for(Product::class)->encodeId(999),
+    'global hash' => fn () => IdHasher::encodeId(1),
 ]);
 
 it('works without a prefix', function () {

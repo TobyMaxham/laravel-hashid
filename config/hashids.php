@@ -15,7 +15,15 @@ return [
      */
     'prefix_mode' => env('HASH_PREFIX_MODE', 'strict'),
 
-    'salt'              => env('HASH_SALT', 'your-salt-string'),
+    'salt' => env('HASH_SALT', 'your-salt-string'),
+
+    /*
+     | true:  every model gets its own hashes (the model key is added to the salt),
+     |        so user 400 and post 400 have different hashes.
+     | false: all models share the same hashes (behavior of 1.x).
+     */
+    'per_model' => env('HASH_PER_MODEL', true),
+
     'length'            => env('HASH_LENGTH', 18),
     'alphabet'          => env('HASH_ALPHABET', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'),
     'exception'         => \TobyMaxham\HashId\Exceptions\WrongIdException::class,

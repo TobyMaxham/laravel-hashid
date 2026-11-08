@@ -53,3 +53,40 @@ it('publishes the config file', function () {
         ->and(array_values($paths)[0])->toBe(config_path('hashids.php'))
         ->and(array_keys($paths)[0])->toEndWith('config/hashids.php');
 });
+
+it('registers the manager as singleton', function () {
+    expect(app(IdHasherManager::class))->toBe(app(IdHasherManager::class))
+        ->and(app('idhasher'))->toBe(app(IdHasherManager::class));
+});
+
+it('publishes the config file with a tag', function () {
+    expect(ServiceProvider::pathsToPublish(HashIdServiceProvider::class, 'hashid-config'))->toHaveCount(1);
+});
+
+it('reads per_model from the config', function () {
+    expect(config('hashids.per_model'))->toBeTrue();
+});
+
+it('throws a clear error when GMP and BCMath are missing', function () {
+    $manager = new class extends IdHasherManager
+    {
+        protected function hasMathExtension(): bool
+        {
+            return false;
+        }
+    };
+
+    $manager->encodeId(1);
+})->throws(RuntimeException::class, 'either GMP or BCMath must be installed');
+
+it('does not check the extensions before hashing', function () {
+    $manager = new class extends IdHasherManager
+    {
+        protected function hasMathExtension(): bool
+        {
+            return false;
+        }
+    };
+
+    expect($manager->prefix())->toBe('h:');
+});

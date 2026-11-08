@@ -12,7 +12,47 @@ trait Hasher
 {
     public function getRouteKey()
     {
-        return IdHasher::encodeId(parent::getRouteKey());
+        return $this->hashIdManager()->encodeId(parent::getRouteKey());
+    }
+
+    /**
+     * Added to the salt, so every model gets its own hashes (see hashids.per_model).
+     * Override this method, or define a HASH_ID_KEY constant or a $hashIdKey property.
+     * Defaults to the table name. Changing it changes all hashes of the model.
+     */
+    public function hashIdKey(): string
+    {
+        if (defined(static::class.'::HASH_ID_KEY')) {
+            return (string) constant(static::class.'::HASH_ID_KEY');
+        }
+
+        if (property_exists($this, 'hashIdKey')) {
+            return (string) $this->hashIdKey;
+        }
+
+        return $this->getTable();
+    }
+
+    /**
+     * Prefix for this model, e.g. "usr_". null uses hashids.prefix, '' disables the prefix.
+     * Override this method, or define a HASH_ID_PREFIX constant or a $hashIdPrefix property.
+     */
+    public function hashIdPrefix(): ?string
+    {
+        if (defined(static::class.'::HASH_ID_PREFIX')) {
+            return constant(static::class.'::HASH_ID_PREFIX');
+        }
+
+        if (property_exists($this, 'hashIdPrefix')) {
+            return $this->hashIdPrefix;
+        }
+
+        return null;
+    }
+
+    public function hashIdManager(): IdHasherManager
+    {
+        return IdHasher::for($this);
     }
 
     /**
@@ -47,7 +87,7 @@ trait Hasher
 
     protected function decodeId($value, bool $throw = true)
     {
-        return IdHasher::decodeId($value, $throw);
+        return $this->hashIdManager()->decodeId($value, $throw);
     }
 
     public function hashID(): ?string
@@ -60,6 +100,6 @@ trait Hasher
      */
     public function safeHashID(): ?string
     {
-        return IdHasher::encodeIdWithoutPrefix(parent::getRouteKey());
+        return $this->hashIdManager()->encodeIdWithoutPrefix(parent::getRouteKey());
     }
 }

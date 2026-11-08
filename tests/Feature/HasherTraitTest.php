@@ -12,7 +12,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 it('uses the hash as route key', function () {
     $product = Product::create(['name' => 'A']);
 
-    expect($product->getRouteKey())->toBe(IdHasher::encodeId($product->id));
+    expect($product->getRouteKey())->toBe(IdHasher::for(Product::class)->encodeId($product->id));
 });
 
 it('returns the hash from hashID()', function () {
@@ -78,7 +78,7 @@ it('does not query the database for an invalid hash', function () {
 });
 
 it('returns null for a valid hash of a missing record', function () {
-    expect((new Product)->resolveRouteBinding(IdHasher::encodeId(999)))->toBeNull();
+    expect((new Product)->resolveRouteBinding(IdHasher::for(Product::class)->encodeId(999)))->toBeNull();
 });
 
 it('throws ModelNotFoundException instead of the configured exception', function () {
@@ -109,16 +109,16 @@ it('resolves soft deleted models with resolveSoftDeletableRouteBinding()', funct
 it('works the same with the ModelWithHasher base class', function () {
     $product = BaseProduct::create(['name' => 'A']);
 
-    expect($product->hashID())->toBe(IdHasher::encodeId($product->id))
+    expect($product->hashID())->toBe(IdHasher::for(BaseProduct::class)->encodeId($product->id))
         ->and((new BaseProduct)->resolveRouteBinding($product->hashID())->is($product))->toBeTrue();
 });
 
-it('creates the same hash for the same id in different models', function () {
-    // Documents the current behavior. v2 plans a different hash per model.
+it('creates the same hash for models with the same table', function () {
     $product = BaseProduct::create(['name' => 'A']);
     $other = Product::find($product->id);
 
-    expect($product->hashID())->toBe($other->hashID());
+    expect($product->getTable())->toBe($other->getTable())
+        ->and($product->hashID())->toBe($other->hashID());
 });
 
 it('cannot hash non-integer keys yet', function () {

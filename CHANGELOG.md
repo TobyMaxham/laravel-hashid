@@ -8,6 +8,12 @@ All notable changes to `tobymaxham/laravel-hashid` will be documented in this fi
 
 _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 
+- **All hashes change:** every model gets its own hashes (`per_model`, enabled by default). Set `HASH_PER_MODEL=false` to keep the 1.x hashes
+- `Hasher` adds the public methods `hashIdKey()`, `hashIdPrefix()` and `hashIdManager()`
+- `IdHasherManager` is registered as singleton and creates its hasher itself (new constructor argument `$salt`)
+- The missing GMP/BCMath extension is reported on the first hash instead of on application boot
+- The config file is published with the tag `hashid-config`
+
 - `Hasher` now overrides `resolveRouteBindingQuery()` instead of `resolveRouteBinding()`
 - An invalid hash in `resolveRouteBinding()` now throws `ModelNotFoundException` instead of returning `null` (no database query is made)
 - `Hasher` can no longer be combined with Laravel's `HasUuids` / `HasUlids` traits
@@ -21,6 +27,9 @@ _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 - GitHub Actions workflow for tests and code style
 - New config option `prefix_mode` (`HASH_PREFIX_MODE`): `strict` (default) or `optional` to accept hashes with and without prefix (#6)
 - `IdHasher::encodeIdWithoutPrefix()`, `IdHasher::prefix()`, `IdHasher::prefixMode()`
+- Hashes per model: new config option `per_model` (`HASH_PER_MODEL`), model key via `hashIdKey()`, `HASH_ID_KEY` or `$hashIdKey` (default: table name)
+- Prefix per model via `hashIdPrefix()`, `HASH_ID_PREFIX` or `$hashIdPrefix`
+- `IdHasher::for($model)` to get the hasher of a model or a custom key
 - Empty prefix (`HASH_PREFIX=` or `HASH_PREFIX=null`) is now officially supported and documented
 
 ### Fixed
@@ -31,6 +40,7 @@ _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 
 ### Changed
 
+- Hashers are cached per model
 - Fixed class names and namespaces in the readme
 - Contact email changed to `git@maxham.net`
 
