@@ -6,6 +6,7 @@ use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
 use TobyMaxham\HashId\Facades\IdHasher;
 use TobyMaxham\HashId\Interfaces\Hashing;
+use TobyMaxham\HashId\Interfaces\HasHashId;
 use TobyMaxham\HashId\Tests\Fixtures\Product;
 use TobyMaxham\HashId\Tests\Fixtures\Document;
 use TobyMaxham\HashId\Tests\Fixtures\BaseProduct;
@@ -128,4 +129,10 @@ it('cannot hash non-integer keys yet', function () {
     $document = Document::create(['id' => (string) Str::uuid(), 'name' => 'A']);
 
     expect($document->hashID())->toBe('h:');
+});
+
+it('implements HasHashId, which extends Hashing', function () {
+    expect(new Product)->toBeInstanceOf(HasHashId::class)
+        ->toBeInstanceOf(Hashing::class)
+        ->and(new BaseProduct)->toBeInstanceOf(HasHashId::class);
 });

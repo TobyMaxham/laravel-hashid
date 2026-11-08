@@ -12,6 +12,8 @@ _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 - Requires Laravel 12 or 13 (dropped Laravel 10 and 11)
 - Requires `hashids/hashids` 5 (the generated hashes are identical to version 4)
 - All classes use `declare(strict_types=1)`
+- Default exception is `InvalidHashIdException` (extends `WrongIdException`) with the message "The given hash id is invalid."
+- `WrongIdException` is deprecated
 
 - **All hashes change:** every model gets its own hashes (`per_model`, enabled by default). Set `HASH_PER_MODEL=false` to keep the 1.x hashes
 - `Hasher` adds new methods and scopes (see [UPGRADING.md](UPGRADING.md)), which can collide with existing methods of your models
@@ -37,6 +39,11 @@ _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 - Prefix per model via `hashIdPrefix()`, `HASH_ID_PREFIX` or `$hashIdPrefix`
 - `IdHasher::for($model)` to get the hasher of a model or a custom key
 - Query methods: `findByHashId()`, `findByHashIdOrFail()`, `findManyByHashIds()`, `decodeHashId()`, `decodeHashIds()`
+- Interface `HasHashId` (extends `Hashing`), implemented by `ModelWithHasher`
+- Validation rules `HashId` and `HashIdExists` (with `where()` for constraints)
+- Request macros `$request->hashId()` and `$request->hashIds()`
+- Trait `SerializesHashIds` for hashes in `toArray()` / JSON, incl. foreign keys
+- Artisan commands `hashid:encode` and `hashid:decode`
 - Query scopes: `whereHashId()`, `orWhereHashId()`, `whereHashIdIn()`, `whereHashIdNot()`, `whereHashIdNotIn()`
 - Empty prefix (`HASH_PREFIX=` or `HASH_PREFIX=null`) is now officially supported and documented
 

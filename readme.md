@@ -50,8 +50,8 @@ return [
     'per_model'         => env('HASH_PER_MODEL', true),
     'length'            => env('HASH_LENGTH', 18),
     'alphabet'          => env('HASH_ALPHABET', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'),
-    'exception'         => \TobyMaxham\HashId\Exceptions\WrongIdException::class,
-    'exception_message' => 'WrongIdException',
+    'exception'         => \TobyMaxham\HashId\Exceptions\InvalidHashIdException::class,
+    'exception_message' => 'The given hash id is invalid.',
     'disable_exception' => false,
 ];
 ```
@@ -118,8 +118,9 @@ You can use the trait `Hasher` in your models to automatically decode hash IDs:
 
 ```php
 use TobyMaxham\HashId\Hasher;
+use TobyMaxham\HashId\Interfaces\HasHashId;
 
-class Product extends Model
+class Product extends Model implements HasHashId
 {
     use Hasher;
 }
@@ -142,6 +143,9 @@ class ProductController extends Controller
     }
 }
 ```
+
+Implementing `HasHashId` is optional, but lets other code (e.g. API resources) detect hashed models. It extends the older `Hashing` interface.
+You can also extend `TobyMaxham\HashId\ModelWithHasher` instead.
 
 Invalid hashes return a 404. Custom fields like `{product:slug}`, scoped bindings like `products/{product}/reviews/{review}` and `->withTrashed()` routes are supported.
 
@@ -185,6 +189,65 @@ Review::whereHas('product', fn ($query) => $query->whereHashId($productHash))->g
 - The query is a normal `where id = ?` / `where id in (...)` on the qualified key (`products.id`), so joins work.
 - Invalid hashes or hashes of another model never throw: `whereHashId()` matches no rows, `findByHashId()` returns `null` without a query.
 - `Model::find()` and `where('id', ...)` are not changed and still expect the real id.
+
+### Validation
+
+```php
+use TobyMaxham\HashId\Rules\HashId;
+use TobyMaxham\HashId\Rules\HashIdExists;
+
+$request->validate([
+    'product_id'  => ['required', new HashIdExists(Product::class)], // valid hash and record exists
+    'category_id' => ['nullable', new HashId(Category::class)],      // valid hash, no query
+    'active_id'   => [(new HashIdExists(Product::class))->where(fn ($query) => $query->where('active', true))],
+]);
+```
+
+Both rules use Laravel's `validation.exists` message ("The selected :attribute is invalid.").
+
+### Request
+
+Get the id from a hash in the request (`null` for missing or invalid values):
+
+```php
+$id  = $request->hashId('product_id', Product::class); // ?int
+$ids = $request->hashIds('product_ids', Product::class); // list<int>, invalid hashes are skipped
+```
+
+### JSON / toArray()
+
+By default `toArray()` and JSON contain the real id. Add `SerializesHashIds` to output hashes instead:
+
+```php
+use TobyMaxham\HashId\Hasher;
+use TobyMaxham\HashId\SerializesHashIds;
+
+class Review extends Model
+{
+    use Hasher;
+    use SerializesHashIds;
+
+    // optional: foreign keys to hash with the salt of their model
+    protected array $hashIdForeignKeys = ['product_id' => Product::class];
+}
+
+$review->toArray(); // ['id' => 'h:…', 'product_id' => 'h:…', ...]
+$review->id;        // still the real id, relations keep working
+```
+
+### Artisan
+
+```bash
+php artisan hashid:encode 34 400 --model="App\Models\Product"
+php artisan hashid:decode h:J7dVgYxKPwyQejOMnL --model=products
+```
+
+Without `--model` the global salt is used.
+
+### Exceptions
+
+`IdHasher::decodeId()` throws `InvalidHashIdException` for invalid hashes (configurable with `exception` and `exception_message`, or disabled with `disable_exception`).
+Pass `false` as second argument to get `null` instead: `IdHasher::decodeId($hash, false)`.
 
 ### Hashes per model
 

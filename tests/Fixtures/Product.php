@@ -6,11 +6,11 @@ namespace TobyMaxham\HashId\Tests\Fixtures;
 
 use TobyMaxham\HashId\Hasher;
 use Illuminate\Database\Eloquent\Model;
-use TobyMaxham\HashId\Interfaces\Hashing;
+use TobyMaxham\HashId\Interfaces\HasHashId;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-class Product extends Model implements Hashing
+class Product extends Model implements HasHashId
 {
     use Hasher;
     use SoftDeletes;

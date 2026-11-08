@@ -6,15 +6,15 @@ use TobyMaxham\HashId\IdHasherManager;
 use Illuminate\Support\ServiceProvider;
 use TobyMaxham\HashId\Facades\IdHasher;
 use TobyMaxham\HashId\HashIdServiceProvider;
-use TobyMaxham\HashId\Exceptions\WrongIdException;
+use TobyMaxham\HashId\Exceptions\InvalidHashIdException;
 
 it('merges the package config', function () {
     expect(config('hashids'))->toMatchArray([
         'prefix'            => 'h:',
         'prefix_mode'       => 'strict',
         'length'            => 18,
-        'exception'         => WrongIdException::class,
-        'exception_message' => 'WrongIdException',
+        'exception'         => InvalidHashIdException::class,
+        'exception_message' => 'The given hash id is invalid.',
         'disable_exception' => false,
     ]);
 });

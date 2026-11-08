@@ -6,6 +6,7 @@ use Hashids\Hashids;
 use TobyMaxham\HashId\IdHasherManager;
 use TobyMaxham\HashId\Exceptions\WrongIdException;
 use TobyMaxham\HashId\Tests\Fixtures\CustomException;
+use TobyMaxham\HashId\Exceptions\InvalidHashIdException;
 
 function manager(?string $prefix = null, ?string $mode = null): IdHasherManager
 {
@@ -211,4 +212,22 @@ describe('hardening', function () {
             ->and(manager('')->decodeId('', false))->toBeNull()
             ->and(manager()->decodeId(null, false))->toBeNull();
     });
+});
+
+it('throws InvalidHashIdException by default, which extends WrongIdException', function () {
+    try {
+        manager()->decodeId('h:invalid');
+    } catch (InvalidHashIdException $e) {
+        expect($e)->toBeInstanceOf(WrongIdException::class)
+            ->and($e->getMessage())->toBe('The given hash id is invalid.');
+
+        return;
+    }
+
+    $this->fail('InvalidHashIdException was not thrown');
+});
+
+it('has a default message for InvalidHashIdException', function () {
+    expect((new InvalidHashIdException)->getMessage())->toBe('The given hash id is invalid.')
+        ->and((new WrongIdException)->getMessage())->toBe('WrongIdException');
 });

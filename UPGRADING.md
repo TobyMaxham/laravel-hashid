@@ -102,6 +102,32 @@ Before it returned a `Stringable` (`Str::of()`). If you called `Stringable` meth
 Str::of($model->safeHashID())->upper();
 ```
 
+## Exceptions
+
+The default exception is now `InvalidHashIdException` with the message "The given hash id is invalid." (before: `WrongIdException` / "WrongIdException").
+`InvalidHashIdException` extends `WrongIdException`, so `catch (WrongIdException $e)` still works. `WrongIdException` is deprecated and will be removed in 3.0.
+
+If you published the config, update these two lines (or keep yours):
+
+```php
+'exception'         => \TobyMaxham\HashId\Exceptions\InvalidHashIdException::class,
+'exception_message' => 'The given hash id is invalid.',
+```
+
+## Interface `HasHashId`
+
+New interface for models with the `Hasher` trait. It extends `Hashing`, so code that checks for `Hashing` keeps working. We recommend to switch:
+
+```php
+class Product extends Model implements HasHashId // before: implements Hashing
+```
+
+`ModelWithHasher` implements it already.
+
+## Request macros
+
+The package registers `Request::hashId()` and `Request::hashIds()`. If your app already defines macros with these names, rename yours.
+
 ## Decoding
 
 `decodeId()` now only accepts hashes that contain exactly one integer.

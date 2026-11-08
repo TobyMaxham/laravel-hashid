@@ -1,5 +1,7 @@
 <?php
 
+use TobyMaxham\HashId\Exceptions\InvalidHashIdException;
+
 return [
     /*
      | Prefix for every hash, e.g. "h:" -> "h:J7dVgYxKPwyQejOMnL".
@@ -26,7 +28,7 @@ return [
 
     'length'            => env('HASH_LENGTH', 18),
     'alphabet'          => env('HASH_ALPHABET', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'),
-    'exception'         => \TobyMaxham\HashId\Exceptions\WrongIdException::class,
-    'exception_message' => 'WrongIdException',
+    'exception'         => InvalidHashIdException::class,
+    'exception_message' => 'The given hash id is invalid.',
     'disable_exception' => false,
 ];

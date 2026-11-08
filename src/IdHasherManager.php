@@ -8,7 +8,7 @@ use Hashids\Hashids;
 use RuntimeException;
 use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
-use TobyMaxham\HashId\Exceptions\WrongIdException;
+use TobyMaxham\HashId\Exceptions\InvalidHashIdException;
 
 class IdHasherManager
 {
@@ -84,9 +84,9 @@ class IdHasherManager
         }
 
         if ($throw && ! config('hashids.disable_exception', false)) {
-            $class = config('hashids.exception', WrongIdException::class);
+            $class = config('hashids.exception', InvalidHashIdException::class);
 
-            throw new $class(config('hashids.exception_message', 'WrongIdException'));
+            throw new $class(config('hashids.exception_message', 'The given hash id is invalid.'));
         }
 
         return null;
