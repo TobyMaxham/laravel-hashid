@@ -2,6 +2,17 @@
 
 Version 2.0 contains breaking changes. Please check every point below.
 
+## Requirements
+
+| | 1.x | 2.0 |
+|---|---|---|
+| PHP | 8.2+ | **8.3+** |
+| Laravel | 10 – 13 | **12, 13** |
+| `hashids/hashids` | 4.x | **5.x** |
+
+Update PHP and Laravel first, then run `composer require tobymaxham/laravel-hashid:^2.0`.
+The update of `hashids/hashids` does not change any hashes. If you use `hashids/hashids` directly in your app, check its [changelog](https://github.com/vinkla/hashids/releases).
+
 ## All hashes change (hashes per model)
 
 **This is the most important change.** In 1.x all models shared the same hashes, so user `400` and post `400` had the same hash.

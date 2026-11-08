@@ -12,6 +12,15 @@ Instead, they are encoded and, for example, `products/34` is converted to `produ
 
 
 
+## Requirements
+
+- PHP 8.3 or higher
+- Laravel 12 or 13
+- PHP extension GMP or BCMath (GMP is faster)
+
+Use version `1.x` for older PHP or Laravel versions.
+
+
 ## Installation
 
 You can install the package via composer:

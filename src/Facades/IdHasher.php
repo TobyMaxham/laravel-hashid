@@ -1,8 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TobyMaxham\HashId\Facades;
 
 use Illuminate\Support\Facades\Facade;
+use TobyMaxham\HashId\IdHasherManager;
 
 /**
  * @method static \TobyMaxham\HashId\IdHasherManager for(\Illuminate\Database\Eloquent\Model|string $model)
@@ -12,7 +15,7 @@ use Illuminate\Support\Facades\Facade;
  * @method static string prefix()
  * @method static string prefixMode()
  *
- * @see \TobyMaxham\HashId\IdHasherManager
+ * @see IdHasherManager
  */
 class IdHasher extends Facade
 {

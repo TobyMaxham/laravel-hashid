@@ -23,7 +23,7 @@ jobs:
 
   tests:
     runs-on: ubuntu-latest
-    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }}
+    name: PHP ${{ matrix.php }} - Laravel ${{ matrix.laravel }} ${{ matrix.dependencies == 'lowest' && '(lowest)' || '' }}
     strategy:
       fail-fast: false
       matrix:
@@ -38,6 +38,10 @@ jobs:
             laravel: '13'
             testbench: '11'
             coverage: true
+          - php: '8.3'
+            laravel: '12'
+            testbench: '10'
+            dependencies: lowest
     steps:
       - uses: actions/checkout@v4
 
@@ -52,7 +56,7 @@ jobs:
 
       - uses: ramsey/composer-install@v3
         with:
-          dependency-versions: highest
+          dependency-versions: ${{ matrix.dependencies || 'highest' }}
 
       - name: Run tests
         if: ${{ !matrix.coverage }}

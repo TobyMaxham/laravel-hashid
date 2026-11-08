@@ -8,6 +8,11 @@ All notable changes to `tobymaxham/laravel-hashid` will be documented in this fi
 
 _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 
+- Requires PHP 8.3 or higher
+- Requires Laravel 12 or 13 (dropped Laravel 10 and 11)
+- Requires `hashids/hashids` 5 (the generated hashes are identical to version 4)
+- All classes use `declare(strict_types=1)`
+
 - **All hashes change:** every model gets its own hashes (`per_model`, enabled by default). Set `HASH_PER_MODEL=false` to keep the 1.x hashes
 - `Hasher` adds new methods and scopes (see [UPGRADING.md](UPGRADING.md)), which can collide with existing methods of your models
 - `IdHasherManager` is registered as singleton and creates its hasher itself (new constructor argument `$salt`)
@@ -25,6 +30,7 @@ _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 
 - Test suite with Pest and Orchestra Testbench
 - GitHub Actions workflow for tests and code style
+- Fixed reference hashes in the tests, so a change of the generated hashes is detected
 - New config option `prefix_mode` (`HASH_PREFIX_MODE`): `strict` (default) or `optional` to accept hashes with and without prefix (#6)
 - `IdHasher::encodeIdWithoutPrefix()`, `IdHasher::prefix()`, `IdHasher::prefixMode()`
 - Hashes per model: new config option `per_model` (`HASH_PER_MODEL`), model key via `hashIdKey()`, `HASH_ID_KEY` or `$hashIdKey` (default: table name)
@@ -42,6 +48,7 @@ _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 
 ### Changed
 
+- Updated `hashids/hashids` to 5.x
 - Hashers are cached per model
 - Fixed class names and namespaces in the readme
 - Contact email changed to `git@maxham.net`

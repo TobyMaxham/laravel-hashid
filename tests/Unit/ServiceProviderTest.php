@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use TobyMaxham\HashId\IdHasherManager;
 use Illuminate\Support\ServiceProvider;
 use TobyMaxham\HashId\Facades\IdHasher;
@@ -89,4 +91,10 @@ it('does not check the extensions before hashing', function () {
     };
 
     expect($manager->prefix())->toBe('h:');
+});
+
+it('accepts config values from the env as strings', function () {
+    $this->setHashConfig(['length' => '10', 'prefix' => '', 'per_model' => 'false']);
+
+    expect(strlen(app(IdHasherManager::class)->encodeId(1)))->toBe(10);
 });

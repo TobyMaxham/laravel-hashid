@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 use Hashids\Hashids;
 use TobyMaxham\HashId\IdHasherManager;
 use TobyMaxham\HashId\Exceptions\WrongIdException;

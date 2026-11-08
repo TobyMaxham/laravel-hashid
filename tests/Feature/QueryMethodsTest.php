@@ -1,6 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 use Illuminate\Support\Facades\DB;
+use Illuminate\Database\Eloquent\Collection;
 use TobyMaxham\HashId\Tests\Fixtures\Review;
 use TobyMaxham\HashId\Tests\Fixtures\Product;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -125,7 +128,7 @@ describe('findManyByHashIds', function () {
     it('returns an empty collection without a query when no hash is valid', function () {
         $count = queryCount(function () {
             expect(Product::findManyByHashIds(['h:invalid', '1']))
-                ->toBeInstanceOf(\Illuminate\Database\Eloquent\Collection::class)
+                ->toBeInstanceOf(Collection::class)
                 ->toBeEmpty();
         });
 

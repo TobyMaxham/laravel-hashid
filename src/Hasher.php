@@ -1,18 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 namespace TobyMaxham\HashId;
 
+use Illuminate\Database\Eloquent\Model;
 use TobyMaxham\HashId\Facades\IdHasher;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
- * @mixin \Illuminate\Database\Eloquent\Model
+ * @mixin Model
  */
 trait Hasher
 {
-    public function getRouteKey()
+    #[\Override]
+    public function getRouteKey(): mixed
     {
         return $this->hashIdManager()->encodeId(parent::getRouteKey());
     }
@@ -153,6 +157,7 @@ trait Hasher
      *
      * @throws ModelNotFoundException
      */
+    #[\Override]
     public function resolveRouteBindingQuery($query, $value, $field = null)
     {
         if ($this->isHashedRouteField($field)) {
