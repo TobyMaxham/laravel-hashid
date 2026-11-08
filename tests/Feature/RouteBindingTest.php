@@ -67,11 +67,28 @@ it('resolves scoped child bindings', function () {
     $this->get("products/{$product->hashID()}/reviews/{$review->hashID()}")->assertOk()->assertSee('Great');
 });
 
-it('accepts the safeHashID in routes', function () {
+it('accepts the safeHashID in routes in optional mode (issue #6)', function () {
+    $this->setHashConfig(['prefix_mode' => 'optional']);
     $product = Product::create(['name' => 'Laptop']);
 
-    $this->get('products/'.$product->safeHashID())->assertOk();
-})->skip('Issue #6: needs prefix_mode=optional (New-Version.md 2)');
+    $this->get('products/'.$product->safeHashID())->assertOk()->assertSee('Laptop');
+    $this->get('products/'.$product->hashID())->assertOk()->assertSee('Laptop');
+    expect(route('products.show', $product))->toEndWith('/products/'.$product->hashID());
+});
+
+it('rejects the safeHashID in routes in strict mode', function () {
+    $product = Product::create(['name' => 'Laptop']);
+
+    $this->get('products/'.$product->safeHashID())->assertNotFound();
+});
+
+it('accepts the safeHashID in scoped child bindings in optional mode', function () {
+    $this->setHashConfig(['prefix_mode' => 'optional']);
+    $product = Product::create(['name' => 'Laptop']);
+    $review = $product->reviews()->create(['body' => 'Great']);
+
+    $this->get("products/{$product->safeHashID()}/reviews/{$review->safeHashID()}")->assertOk()->assertSee('Great');
+});
 
 it('resolves soft deleted models on withTrashed routes', function () {
     $product = Product::create(['name' => 'Laptop']);

@@ -5,9 +5,9 @@ use TobyMaxham\HashId\IdHasherManager;
 use TobyMaxham\HashId\Exceptions\WrongIdException;
 use TobyMaxham\HashId\Tests\Fixtures\CustomException;
 
-function manager(?string $prefix = null): IdHasherManager
+function manager(?string $prefix = null, ?string $mode = null): IdHasherManager
 {
-    $manager = new IdHasherManager($prefix);
+    $manager = new IdHasherManager($prefix, $mode);
     $manager->setHasher(new Hashids('test-salt', 18, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'));
 
     return $manager;
@@ -110,4 +110,103 @@ it('reads the prefix from the config when none is given', function () {
     config()->set('hashids.prefix', 'cfg_');
 
     expect(manager()->encodeId(34))->toStartWith('cfg_');
+});
+
+describe('prefix', function () {
+    it('treats a null prefix from the config as no prefix', function () {
+        config()->set('hashids.prefix', null);
+        $manager = manager();
+
+        expect($manager->prefix())->toBe('')
+            ->and($manager->decodeId($manager->encodeId(34)))->toBe(34);
+    });
+
+    it('reads an empty prefix from the env', function (string $value) {
+        $_ENV['HASH_PREFIX'] = $_SERVER['HASH_PREFIX'] = $value;
+
+        try {
+            $config = require __DIR__.'/../../config/hashids.php';
+        } finally {
+            unset($_ENV['HASH_PREFIX'], $_SERVER['HASH_PREFIX']);
+        }
+
+        expect((new IdHasherManager($config['prefix'] ?? ''))->prefix())->toBe('');
+    })->with(['empty' => '', 'null' => 'null', '(empty)' => '(empty)']);
+
+    it('encodes without prefix on request', function () {
+        expect(manager()->encodeIdWithoutPrefix(34))->toBe(substr(manager()->encodeId(34), 2));
+    });
+});
+
+describe('prefix_mode', function () {
+    it('defaults to strict', function () {
+        expect(manager()->prefixMode())->toBe(IdHasherManager::PREFIX_STRICT);
+    });
+
+    it('reads the mode from the config', function () {
+        config()->set('hashids.prefix_mode', 'optional');
+
+        expect(manager()->prefixMode())->toBe(IdHasherManager::PREFIX_OPTIONAL);
+    });
+
+    it('falls back to strict when the config value is missing', function () {
+        config()->set('hashids.prefix_mode', null);
+
+        expect(manager()->prefixMode())->toBe(IdHasherManager::PREFIX_STRICT);
+    });
+
+    it('rejects an unknown mode', function () {
+        manager(null, 'sometimes');
+    })->throws(InvalidArgumentException::class, 'Invalid hashids.prefix_mode [sometimes]');
+
+    it('accepts hashes with and without prefix in optional mode', function () {
+        $manager = manager(null, 'optional');
+
+        expect($manager->decodeId($manager->encodeId(34)))->toBe(34)
+            ->and($manager->decodeId($manager->encodeIdWithoutPrefix(34)))->toBe(34);
+    });
+
+    it('still encodes with prefix in optional mode', function () {
+        expect(manager(null, 'optional')->encodeId(34))->toStartWith('h:');
+    });
+
+    it('still rejects invalid hashes in optional mode', function (string $hash) {
+        manager(null, 'optional')->decodeId($hash);
+    })->with(['h:invalid', 'invalid', '34', 'x:abc', 'h:'])->throws(WrongIdException::class);
+
+    it('handles a prefix that is also a valid hash character', function () {
+        // Worst case: the prefix is the first character of a real hash without prefix.
+        $raw = manager('')->encodeId(1);
+        $manager = manager($raw[0], 'optional');
+
+        expect($manager->decodeId($raw))->toBe(1)
+            ->and($manager->decodeId($manager->encodeId(1)))->toBe(1)
+            ->and($manager->decodeId($manager->encodeId(2)))->toBe(2);
+    });
+
+    it('ignores the mode when there is no prefix', function () {
+        $manager = manager('', 'optional');
+
+        expect($manager->decodeId($manager->encodeId(34)))->toBe(34);
+    });
+});
+
+describe('hardening', function () {
+    it('rejects a hash that contains several numbers', function () {
+        $hashids = new Hashids('test-salt', 18, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
+
+        manager()->decodeId('h:'.$hashids->encode(1, 2));
+    })->throws(WrongIdException::class);
+
+    it('rejects numbers larger than PHP_INT_MAX', function () {
+        $hashids = new Hashids('test-salt', 18, 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890');
+
+        expect(manager()->decodeId('h:'.$hashids->encode('99999999999999999999999'), false))->toBeNull();
+    });
+
+    it('rejects an empty value', function () {
+        expect(manager()->decodeId('', false))->toBeNull()
+            ->and(manager('')->decodeId('', false))->toBeNull()
+            ->and(manager()->decodeId(null, false))->toBeNull();
+    });
 });

@@ -2,7 +2,6 @@
 
 namespace TobyMaxham\HashId;
 
-use Illuminate\Support\Str;
 use TobyMaxham\HashId\Facades\IdHasher;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
@@ -56,8 +55,11 @@ trait Hasher
         return $this->getRouteKey();
     }
 
+    /**
+     * The hash without prefix. Accepted in routes when hashids.prefix_mode is "optional".
+     */
     public function safeHashID(): ?string
     {
-        return Str::of($this->hashID())->after(config('hashids.prefix'));
+        return IdHasher::encodeIdWithoutPrefix(parent::getRouteKey());
     }
 }

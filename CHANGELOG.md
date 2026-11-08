@@ -11,11 +11,17 @@ _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 - `Hasher` now overrides `resolveRouteBindingQuery()` instead of `resolveRouteBinding()`
 - An invalid hash in `resolveRouteBinding()` now throws `ModelNotFoundException` instead of returning `null` (no database query is made)
 - `Hasher` can no longer be combined with Laravel's `HasUuids` / `HasUlids` traits
+- `safeHashID()` returns a `string` instead of a `Stringable`
+- `IdHasherManager::decodeId()` only accepts hashes of exactly one integer (hashes of several numbers or numbers larger than `PHP_INT_MAX` are invalid)
+- `IdHasherManager` has typed parameters and return types
 
 ### Added
 
 - Test suite with Pest and Orchestra Testbench
 - GitHub Actions workflow for tests and code style
+- New config option `prefix_mode` (`HASH_PREFIX_MODE`): `strict` (default) or `optional` to accept hashes with and without prefix (#6)
+- `IdHasher::encodeIdWithoutPrefix()`, `IdHasher::prefix()`, `IdHasher::prefixMode()`
+- Empty prefix (`HASH_PREFIX=` or `HASH_PREFIX=null`) is now officially supported and documented
 
 ### Fixed
 
@@ -25,6 +31,7 @@ _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 
 ### Changed
 
+- Fixed class names and namespaces in the readme
 - Contact email changed to `git@maxham.net`
 
 ## 1.1 - 2025-04-12

@@ -25,16 +25,22 @@ it('returns the hash from hashID()', function () {
 it('returns the hash without prefix from safeHashID()', function () {
     $product = Product::create(['name' => 'A']);
 
-    expect((string) $product->safeHashID())
+    expect($product->safeHashID())
         ->toBe(substr($product->hashID(), strlen('h:')))
         ->not->toStartWith('h:');
+});
+
+it('returns a plain string from safeHashID()', function () {
+    $product = Product::create(['name' => 'A']);
+
+    expect($product->safeHashID())->toBeString();
 });
 
 it('returns the full hash from safeHashID() when the prefix is empty', function () {
     $this->setHashConfig(['prefix' => '']);
     $product = Product::create(['name' => 'A']);
 
-    expect((string) $product->safeHashID())->toBe($product->hashID());
+    expect($product->safeHashID())->toBe($product->hashID());
 });
 
 it('resolves the model from a hash', function () {
@@ -57,7 +63,7 @@ it('throws ModelNotFoundException for an invalid hash', function (string $value)
 it('throws ModelNotFoundException for a hash without the prefix', function () {
     $product = Product::create(['name' => 'A']);
 
-    (new Product)->resolveRouteBinding((string) $product->safeHashID());
+    (new Product)->resolveRouteBinding($product->safeHashID());
 })->throws(ModelNotFoundException::class);
 
 it('does not query the database for an invalid hash', function () {

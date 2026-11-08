@@ -9,6 +9,7 @@ use TobyMaxham\HashId\Exceptions\WrongIdException;
 it('merges the package config', function () {
     expect(config('hashids'))->toMatchArray([
         'prefix'            => 'h:',
+        'prefix_mode'       => 'strict',
         'length'            => 18,
         'exception'         => WrongIdException::class,
         'exception_message' => 'WrongIdException',

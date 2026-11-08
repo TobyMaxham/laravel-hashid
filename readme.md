@@ -28,7 +28,7 @@ composer require tobymaxham/laravel-hashid
 Publish the configuration file with:
 
 ```bash
-php artisan vendor:publish --provider="TobyMaxham\HashID\IdHasherServiceProvider"
+php artisan vendor:publish --provider="TobyMaxham\HashId\HashIdServiceProvider"
 ```
 
 For example, the configuration file `config/hashids.php` looks like this:
@@ -36,6 +36,7 @@ For example, the configuration file `config/hashids.php` looks like this:
 ```php
 return [
     'prefix'            => env('HASH_PREFIX', 'h:'),
+    'prefix_mode'       => env('HASH_PREFIX_MODE', 'strict'),
     'salt'              => env('HASH_SALT', 'your-salt-string'),
     'length'            => env('HASH_LENGTH', 18),
     'alphabet'          => env('HASH_ALPHABET', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'),
@@ -44,6 +45,27 @@ return [
     'disable_exception' => false,
 ];
 ```
+
+### Prefix
+
+Every hash starts with the prefix (default `h:`), e.g. `h:J7dVgYxKPwyQejOMnL`.
+
+**No prefix:** set an empty value. This is fully supported, in routes and everywhere else.
+
+```dotenv
+HASH_PREFIX=
+```
+
+**Prefix mode:** `HASH_PREFIX_MODE` controls which hashes are accepted when decoding.
+
+| Mode | Accepts | Use case |
+|------|---------|----------|
+| `strict` (default) | only `h:J7dVgYxKPwyQejOMnL` | one format everywhere |
+| `optional` | `h:J7dVgYxKPwyQejOMnL` and `J7dVgYxKPwyQejOMnL` | prefix in public URLs, plain hash in APIs (`safeHashID()`) |
+
+Hashes are always **generated** with the prefix. `safeHashID()` returns the hash without the prefix.
+
+> The `:` in the default prefix is fine in URL paths. If a proxy or CDN encodes it, use a prefix like `h_` or `h-`.
 
 ## Usage
 
@@ -57,6 +79,12 @@ $hash = IdHasher::encodeId(34);
 
 $id = IdHasher::decodeId($hash);
 // result: 34
+
+IdHasher::encodeIdWithoutPrefix(34);
+// result: J7dVgYxKPwyQejOMnL
+
+IdHasher::decodeId('h:invalid', false);
+// result: null (no exception)
 ```
 
 ### Using Dependency Injection
@@ -64,7 +92,7 @@ $id = IdHasher::decodeId($hash);
 If you prefer to use dependency injection:
 
 ```php
-use TobyMaxham\HashID\IdHasherManager;
+use TobyMaxham\HashId\IdHasherManager;
 
 public function show(IdHasherManager $idHasher, $hash)
 {
@@ -76,9 +104,11 @@ public function show(IdHasherManager $idHasher, $hash)
 
 ### Automatically Decode Hash IDs
 
-You can use the trait `HashId` in your models to automatically decode hash IDs:
+You can use the trait `Hasher` in your models to automatically decode hash IDs:
 
 ```php
+use TobyMaxham\HashId\Hasher;
+
 class Product extends Model
 {
     use Hasher;
@@ -102,6 +132,17 @@ class ProductController extends Controller
     }
 }
 ```
+
+Invalid hashes return a 404. Custom fields like `{product:slug}`, scoped bindings like `products/{product}/reviews/{review}` and `->withTrashed()` routes are supported.
+
+The model also gets these methods:
+
+```php
+$product->hashID();     // h:J7dVgYxKPwyQejOMnL
+$product->safeHashID(); // J7dVgYxKPwyQejOMnL
+```
+
+> Hashing only works for integer keys. Do not combine `Hasher` with `HasUuids` or `HasUlids`.
 
 ## Security
 

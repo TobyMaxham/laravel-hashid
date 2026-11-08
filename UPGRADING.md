@@ -34,6 +34,32 @@ This is the same behavior as Laravel's `HasUuids` trait. A valid hash of a missi
 
 Routes like `{product:slug}` now look up the plain value. Before, the value was decoded as a hash and the route always returned a 404.
 
+## Prefix
+
+### New option `prefix_mode`
+
+Add it to your published `config/hashids.php`:
+
+```php
+'prefix_mode' => env('HASH_PREFIX_MODE', 'strict'),
+```
+
+`strict` is the default and behaves like 1.x. Use `optional` to also accept hashes without the prefix, e.g. values from `safeHashID()` in routes.
+
+### `safeHashID()` returns a `string`
+
+Before it returned a `Stringable` (`Str::of()`). If you called `Stringable` methods on it, wrap it yourself:
+
+```php
+Str::of($model->safeHashID())->upper();
+```
+
+## Decoding
+
+`decodeId()` now only accepts hashes that contain exactly one integer.
+Hashes created with several numbers (`Hashids::encode(1, 2)`) or numbers larger than `PHP_INT_MAX` are invalid.
+Hashes created by this package are not affected.
+
 ## UUID / ULID keys
 
 `Hasher` can no longer be used together with Laravel's `HasUuids` or `HasUlids` traits, because both define `resolveRouteBindingQuery()`.
