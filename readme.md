@@ -1,6 +1,7 @@
 [![Laravel HashID][laravel-hashid-image]][laravel-hashid-edit-link]
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/tobymaxham/laravel-hashid.svg?style=flat-square)](https://packagist.org/packages/tobymaxham/laravel-hashid)
+[![Tests](https://img.shields.io/github/actions/workflow/status/TobyMaxham/laravel-hashid/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/TobyMaxham/laravel-hashid/actions/workflows/tests.yml)
 [![MIT Licensed](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Total Downloads](https://img.shields.io/packagist/dt/tobymaxham/laravel-hashid.svg?style=flat-square)](https://packagist.org/packages/tobymaxham/laravel-hashid)
 [![Support me on Patreon](https://img.shields.io/endpoint.svg?url=https%3A%2F%2Fshieldsio-patreon.vercel.app%2Fapi%3Fusername%3DTobymaxham%26type%3Dpatrons&style=flat)](https://patreon.com/Tobymaxham)
@@ -108,6 +109,14 @@ class ProductController extends Controller
 - The encoded IDs are not encrypted, just encoded. Therefore, they are not secure and should not be used for security purposes.
 
 
+## Testing
+
+```bash
+composer test
+composer test-coverage
+```
+
+
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
@@ -115,7 +124,7 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Security Vulnerabilities
 
-If you've found a bug regarding security please mail [mailto:git@maxham.de](git@maxham.de) instead of using the issue tracker.
+If you've found a bug regarding security please mail [git@maxham.net](mailto:git@maxham.net) instead of using the issue tracker.
 
 
 ## Support me

@@ -10,8 +10,8 @@
     "license": "MIT",
     "authors": [
         {
-            "name": ":TobyMaxham",
-            "email": "git@maxham.de",
+            "name": "TobyMaxham",
+            "email": "git@maxham.net",
             "role": "Developer"
         }
     ],
@@ -26,15 +26,25 @@
             "TobyMaxham\\HashId\\": "src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "TobyMaxham\\HashId\\Tests\\": "tests"
+        }
+    },
     "require-dev": {
-        "laravel/pint": "^1.21"
+        "laravel/pint": "^1.21",
+        "orchestra/testbench": "^9.0|^10.0|^11.0",
+        "pestphp/pest": "^3.0|^4.0"
     },
     "suggest": {
         "ext-gmp": "Recommended for best performance with hashids/hashids.",
         "ext-bcmath": "Alternative to GMP. At least one is required."
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "extra": {
         "laravel": {
@@ -44,7 +54,9 @@
         }
     },
     "scripts": {
-        "cs-fix": "./vendor/bin/pint src/"
+        "test": "vendor/bin/pest",
+        "test-coverage": "XDEBUG_MODE=coverage vendor/bin/pest --coverage",
+        "cs-fix": "./vendor/bin/pint src/ tests/"
     },
     "minimum-stability": "dev",
     "prefer-stable": true
