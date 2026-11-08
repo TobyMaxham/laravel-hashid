@@ -22,8 +22,13 @@ or in your published `config/hashids.php`:
 If you enable it, the model key is added to the salt. By default this is the table name.
 Set a fixed key with `HASH_ID_KEY`, `$hashIdKey` or `hashIdKey()` if the table name may change later (see readme).
 
-**Methods added to the `Hasher` trait:** `hashIdKey()`, `hashIdPrefix()` and `hashIdManager()`.
-If your model already has methods or properties with these names, rename them.
+**Methods added to the `Hasher` trait:**
+
+- `hashIdKey()`, `hashIdPrefix()`, `hashIdManager()`
+- static `decodeHashId()`, `decodeHashIds()`, `findByHashId()`, `findByHashIdOrFail()`, `findManyByHashIds()`
+- scopes `scopeWhereHashId()`, `scopeOrWhereHashId()`, `scopeWhereHashIdIn()`, `scopeWhereHashIdNot()`, `scopeWhereHashIdNotIn()`
+
+If your model already has methods with these names, rename them or the trait methods will be overwritten by yours.
 
 `IdHasher::encodeId()` / `decodeId()` still use the global salt. Use `IdHasher::for(User::class)` for the hashes of a model.
 

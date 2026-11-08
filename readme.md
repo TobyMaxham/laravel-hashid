@@ -145,6 +145,38 @@ $product->safeHashID(); // J7dVgYxKPwyQejOMnL
 
 > Hashing only works for integer keys. Do not combine `Hasher` with `HasUuids` or `HasUlids`.
 
+### Queries
+
+Find models by hash:
+
+```php
+Product::findByHashId($hash);                 // ?Product
+Product::findByHashIdOrFail($hash);           // Product or ModelNotFoundException (404)
+Product::findManyByHashIds([$hash1, $hash2]); // Collection, invalid hashes are skipped
+Product::findByHashId($hash, ['id', 'name']); // only these columns
+
+Product::decodeHashId($hash);                 // ?int, no query
+Product::decodeHashIds([$hash1, $hash2]);     // list of ints, invalid hashes are skipped
+```
+
+Or use the scopes in any query, on relations and inside `whereHas()`:
+
+```php
+Product::whereHashId($hash)->first();
+Product::whereHashId($hash1)->orWhereHashId($hash2)->get();
+Product::whereHashIdIn([$hash1, $hash2])->get();
+Product::whereHashIdNot($hash)->get();
+Product::whereHashIdNotIn([$hash1, $hash2])->get();
+
+$product->reviews()->whereHashId($reviewHash)->first();
+
+Review::whereHas('product', fn ($query) => $query->whereHashId($productHash))->get();
+```
+
+- The query is a normal `where id = ?` / `where id in (...)` on the qualified key (`products.id`), so joins work.
+- Invalid hashes or hashes of another model never throw: `whereHashId()` matches no rows, `findByHashId()` returns `null` without a query.
+- `Model::find()` and `where('id', ...)` are not changed and still expect the real id.
+
 ### Hashes per model
 
 Every model gets its own hashes, so user `400` and post `400` have different hashes.

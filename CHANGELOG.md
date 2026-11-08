@@ -9,7 +9,7 @@ All notable changes to `tobymaxham/laravel-hashid` will be documented in this fi
 _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 
 - **All hashes change:** every model gets its own hashes (`per_model`, enabled by default). Set `HASH_PER_MODEL=false` to keep the 1.x hashes
-- `Hasher` adds the public methods `hashIdKey()`, `hashIdPrefix()` and `hashIdManager()`
+- `Hasher` adds new methods and scopes (see [UPGRADING.md](UPGRADING.md)), which can collide with existing methods of your models
 - `IdHasherManager` is registered as singleton and creates its hasher itself (new constructor argument `$salt`)
 - The missing GMP/BCMath extension is reported on the first hash instead of on application boot
 - The config file is published with the tag `hashid-config`
@@ -30,6 +30,8 @@ _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 - Hashes per model: new config option `per_model` (`HASH_PER_MODEL`), model key via `hashIdKey()`, `HASH_ID_KEY` or `$hashIdKey` (default: table name)
 - Prefix per model via `hashIdPrefix()`, `HASH_ID_PREFIX` or `$hashIdPrefix`
 - `IdHasher::for($model)` to get the hasher of a model or a custom key
+- Query methods: `findByHashId()`, `findByHashIdOrFail()`, `findManyByHashIds()`, `decodeHashId()`, `decodeHashIds()`
+- Query scopes: `whereHashId()`, `orWhereHashId()`, `whereHashIdIn()`, `whereHashIdNot()`, `whereHashIdNotIn()`
 - Empty prefix (`HASH_PREFIX=` or `HASH_PREFIX=null`) is now officially supported and documented
 
 ### Fixed

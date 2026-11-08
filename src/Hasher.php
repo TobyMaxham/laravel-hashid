@@ -3,6 +3,8 @@
 namespace TobyMaxham\HashId;
 
 use TobyMaxham\HashId\Facades\IdHasher;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 /**
@@ -53,6 +55,96 @@ trait Hasher
     public function hashIdManager(): IdHasherManager
     {
         return IdHasher::for($this);
+    }
+
+    /**
+     * Decode a hash of this model without a query. Returns null for invalid hashes.
+     */
+    public static function decodeHashId(mixed $hash): ?int
+    {
+        return IdHasher::for(static::class)->decodeId($hash, false);
+    }
+
+    public static function findByHashId(mixed $hash, array|string $columns = ['*']): ?static
+    {
+        if (null === $id = static::decodeHashId($hash)) {
+            return null;
+        }
+
+        return static::query()->whereKey($id)->first($columns);
+    }
+
+    /**
+     * @throws ModelNotFoundException
+     */
+    public static function findByHashIdOrFail(mixed $hash, array|string $columns = ['*']): static
+    {
+        return static::findByHashId($hash, $columns)
+            ?? throw (new ModelNotFoundException)->setModel(static::class, [$hash]);
+    }
+
+    /**
+     * Invalid hashes are skipped. No query is made when no hash is valid.
+     */
+    public static function findManyByHashIds(iterable $hashes, array|string $columns = ['*']): Collection
+    {
+        $ids = static::decodeHashIds($hashes);
+
+        if ([] === $ids) {
+            return (new static)->newCollection();
+        }
+
+        return static::query()->whereKey($ids)->get($columns);
+    }
+
+    /**
+     * @return list<int>
+     */
+    public static function decodeHashIds(iterable $hashes): array
+    {
+        $ids = [];
+
+        foreach ($hashes as $hash) {
+            if (null !== $id = static::decodeHashId($hash)) {
+                $ids[] = $id;
+            }
+        }
+
+        return array_values(array_unique($ids));
+    }
+
+    /**
+     * An invalid hash matches no rows.
+     */
+    public function scopeWhereHashId(Builder $query, mixed $hash): void
+    {
+        $query->whereIn($this->getQualifiedKeyName(), static::decodeHashIds([$hash]));
+    }
+
+    public function scopeOrWhereHashId(Builder $query, mixed $hash): void
+    {
+        $query->orWhereIn($this->getQualifiedKeyName(), static::decodeHashIds([$hash]));
+    }
+
+    /**
+     * Invalid hashes are skipped, so no valid hash matches no rows.
+     */
+    public function scopeWhereHashIdIn(Builder $query, iterable $hashes): void
+    {
+        $query->whereIn($this->getQualifiedKeyName(), static::decodeHashIds($hashes));
+    }
+
+    /**
+     * Invalid hashes are skipped, so no valid hash excludes no rows.
+     */
+    public function scopeWhereHashIdNotIn(Builder $query, iterable $hashes): void
+    {
+        $query->whereNotIn($this->getQualifiedKeyName(), static::decodeHashIds($hashes));
+    }
+
+    public function scopeWhereHashIdNot(Builder $query, mixed $hash): void
+    {
+        $this->scopeWhereHashIdNotIn($query, [$hash]);
     }
 
     /**
