@@ -13,9 +13,11 @@ class SerializedReview extends Review
 
     protected $table = 'reviews';
 
+    /** @var array<string, class-string> */
     protected array $hashIdForeignKeys = ['product_id' => Product::class];
 
-    public function product(): BelongsTo
+    /** @return BelongsTo<SerializedProduct, $this> */
+    public function serializedProduct(): BelongsTo
     {
         return $this->belongsTo(SerializedProduct::class, 'product_id');
     }

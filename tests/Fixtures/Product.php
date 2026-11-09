@@ -19,6 +19,7 @@ class Product extends Model implements HasHashId
 
     protected $guarded = [];
 
+    /** @return HasMany<Review, $this> */
     public function reviews(): HasMany
     {
         return $this->hasMany(Review::class);

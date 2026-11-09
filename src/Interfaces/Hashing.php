@@ -6,5 +6,8 @@ namespace TobyMaxham\HashId\Interfaces;
 
 interface Hashing
 {
+    /**
+     * @return string|null
+     */
     public function hashID();
 }

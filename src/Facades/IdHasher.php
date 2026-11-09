@@ -14,6 +14,8 @@ use TobyMaxham\HashId\IdHasherManager;
  * @method static int|null decodeId(mixed $hash, bool $throw = true)
  * @method static string prefix()
  * @method static string prefixMode()
+ * @method static list<string> fallbackSalts()
+ * @method static bool usesDefaultSalt()
  *
  * @see IdHasherManager
  */

@@ -20,6 +20,13 @@ return [
     'salt' => env('HASH_SALT', 'your-salt-string'),
 
     /*
+     | Old salts, only used to decode. Encoding always uses "salt".
+     | After changing the salt, add the old one here, so old links keep working:
+     | HASH_PREVIOUS_SALTS="old-salt,older-salt"
+     */
+    'previous_salts' => env('HASH_PREVIOUS_SALTS', ''),
+
+    /*
      | true:  every model gets its own hashes (the model key is added to the salt),
      |        so user 400 and post 400 have different hashes.
      | false: all models share the same hashes (behavior of 1.x).

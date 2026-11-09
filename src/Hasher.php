@@ -69,6 +69,9 @@ trait Hasher
         return IdHasher::for(static::class)->decodeId($hash, false);
     }
 
+    /**
+     * @param  array<int, string>|string  $columns
+     */
     public static function findByHashId(mixed $hash, array|string $columns = ['*']): ?static
     {
         if (null === $id = static::decodeHashId($hash)) {
@@ -79,6 +82,8 @@ trait Hasher
     }
 
     /**
+     * @param  array<int, string>|string  $columns
+     *
      * @throws ModelNotFoundException
      */
     public static function findByHashIdOrFail(mixed $hash, array|string $columns = ['*']): static
@@ -89,19 +94,24 @@ trait Hasher
 
     /**
      * Invalid hashes are skipped. No query is made when no hash is valid.
+     *
+     * @param  iterable<mixed>  $hashes
+     * @param  array<int, string>|string  $columns
+     * @return Collection<int, static>
      */
     public static function findManyByHashIds(iterable $hashes, array|string $columns = ['*']): Collection
     {
         $ids = static::decodeHashIds($hashes);
 
         if ([] === $ids) {
-            return (new static)->newCollection();
+            return static::query()->getModel()->newCollection();
         }
 
         return static::query()->whereKey($ids)->get($columns);
     }
 
     /**
+     * @param  iterable<mixed>  $hashes
      * @return list<int>
      */
     public static function decodeHashIds(iterable $hashes): array
@@ -119,12 +129,17 @@ trait Hasher
 
     /**
      * An invalid hash matches no rows.
+     *
+     * @param  Builder<static>  $query
      */
     public function scopeWhereHashId(Builder $query, mixed $hash): void
     {
         $query->whereIn($this->getQualifiedKeyName(), static::decodeHashIds([$hash]));
     }
 
+    /**
+     * @param  Builder<static>  $query
+     */
     public function scopeOrWhereHashId(Builder $query, mixed $hash): void
     {
         $query->orWhereIn($this->getQualifiedKeyName(), static::decodeHashIds([$hash]));
@@ -132,6 +147,9 @@ trait Hasher
 
     /**
      * Invalid hashes are skipped, so no valid hash matches no rows.
+     *
+     * @param  Builder<static>  $query
+     * @param  iterable<mixed>  $hashes
      */
     public function scopeWhereHashIdIn(Builder $query, iterable $hashes): void
     {
@@ -140,12 +158,18 @@ trait Hasher
 
     /**
      * Invalid hashes are skipped, so no valid hash excludes no rows.
+     *
+     * @param  Builder<static>  $query
+     * @param  iterable<mixed>  $hashes
      */
     public function scopeWhereHashIdNotIn(Builder $query, iterable $hashes): void
     {
         $query->whereNotIn($this->getQualifiedKeyName(), static::decodeHashIds($hashes));
     }
 
+    /**
+     * @param  Builder<static>  $query
+     */
     public function scopeWhereHashIdNot(Builder $query, mixed $hash): void
     {
         $this->scopeWhereHashIdNotIn($query, [$hash]);
@@ -182,7 +206,7 @@ trait Hasher
         return in_array($field, [$this->getRouteKeyName(), $this->qualifyColumn($this->getRouteKeyName())], true);
     }
 
-    protected function decodeId($value, bool $throw = true)
+    protected function decodeId(mixed $value, bool $throw = true): ?int
     {
         return $this->hashIdManager()->decodeId($value, $throw);
     }

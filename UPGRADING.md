@@ -18,6 +18,14 @@ The update of `hashids/hashids` does not change any hashes. If you use `hashids/
 **This is the most important change.** In 1.x all models shared the same hashes, so user `400` and post `400` had the same hash.
 In 2.0 every model gets its own hashes. **All existing hashes change**, e.g. links in emails, bookmarks or ids stored in other systems.
 
+**Recommended: accept the old hashes during the upgrade.** New hashes are created per model, old links keep working:
+
+```dotenv
+HASH_ACCEPT_LEGACY=true
+```
+
+Remove it later, when the old links are no longer needed. This works as long as the prefix of the model did not change.
+
 **To keep the 1.x hashes**, disable it:
 
 ```dotenv
@@ -113,6 +121,16 @@ If you published the config, update these two lines (or keep yours):
 'exception'         => \TobyMaxham\HashId\Exceptions\InvalidHashIdException::class,
 'exception_message' => 'The given hash id is invalid.',
 ```
+
+## Config validation
+
+The config is checked now. These values throw an `InvalidArgumentException`, they did not work correctly before anyway:
+
+- a prefix with `/`, `?`, `#`, `%` or spaces (breaks URLs)
+- a negative or non-integer `length`
+- an `exception` that is not an exception class
+
+Add the new keys to your published config: `previous_salts`, `accept_legacy_hashes` (see [config/hashids.php](config/hashids.php)).
 
 ## Interface `HasHashId`
 

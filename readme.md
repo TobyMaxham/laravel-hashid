@@ -47,7 +47,9 @@ return [
     'prefix'            => env('HASH_PREFIX', 'h:'),
     'prefix_mode'       => env('HASH_PREFIX_MODE', 'strict'),
     'salt'              => env('HASH_SALT', 'your-salt-string'),
+    'previous_salts'    => env('HASH_PREVIOUS_SALTS', ''),
     'per_model'         => env('HASH_PER_MODEL', true),
+    'accept_legacy_hashes' => env('HASH_ACCEPT_LEGACY', false),
     'length'            => env('HASH_LENGTH', 18),
     'alphabet'          => env('HASH_ALPHABET', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'),
     'exception'         => \TobyMaxham\HashId\Exceptions\InvalidHashIdException::class,
@@ -305,8 +307,20 @@ HASH_PER_MODEL=false
 
 ## Security
 
-- Make sure your **salt value remains secret** and is not published in your repository.
-- The encoded IDs are not encrypted, just encoded. Therefore, they are not secure and should not be used for security purposes.
+- **Set your own salt** with `HASH_SALT` and keep it secret. With the default salt (`your-salt-string`) anyone can decode your hashes.
+  In production the package logs a warning once per process, and `php artisan about` shows the salt status.
+- **Hashes are not encryption.** They only hide the real ids and prevent counting through them (`/users/1`, `/users/2`, …).
+  They are **no replacement for authorization**: always check access with policies or gates.
+- **Rotate a leaked salt** without breaking old links: set the new salt and add the old one to `HASH_PREVIOUS_SALTS`.
+  Old hashes are still accepted, new hashes are created with the new salt.
+
+  ```dotenv
+  HASH_SALT=new-secret
+  HASH_PREVIOUS_SALTS=old-secret
+  ```
+
+- The config is checked when the first hash is created: invalid `alphabet`, `length`, `exception` or a prefix with `/`, `?`, `#`, `%` or spaces throw an `InvalidArgumentException` with the config key in the message.
+- **Laravel Octane:** supported. The hasher only keeps data from the config, no request state.
 
 
 ## Testing
@@ -314,6 +328,7 @@ HASH_PER_MODEL=false
 ```bash
 composer test
 composer test-coverage
+composer analyse
 ```
 
 

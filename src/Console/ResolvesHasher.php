@@ -12,7 +12,7 @@ trait ResolvesHasher
     {
         $model = $this->option('model');
 
-        if (null === $model || '' === $model) {
+        if (! is_string($model) || '' === $model) {
             return $manager;
         }
 

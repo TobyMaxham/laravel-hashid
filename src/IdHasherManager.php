@@ -4,12 +4,16 @@ declare(strict_types=1);
 
 namespace TobyMaxham\HashId;
 
+use Throwable;
 use Hashids\Hashids;
 use RuntimeException;
 use InvalidArgumentException;
 use Illuminate\Database\Eloquent\Model;
 use TobyMaxham\HashId\Exceptions\InvalidHashIdException;
 
+/**
+ * @phpstan-consistent-constructor
+ */
 class IdHasherManager
 {
     /** The hash must start with the prefix. */
@@ -26,15 +30,40 @@ class IdHasherManager
 
     private ?Hashids $hasher = null;
 
+    /** @var list<string> salts that are only used to decode, e.g. after a salt rotation */
+    protected array $fallbackSalts;
+
+    /** @var list<Hashids>|null */
+    private ?array $fallbackHashers = null;
+
+    /** Default salt of the config file, must be changed in production. */
+    public const DEFAULT_SALT = 'your-salt-string';
+
+    private static bool $warnedAboutDefaultSalt = false;
+
     /** @var array<string, static> */
     protected array $scoped = [];
 
-    public function __construct(?string $prefix = null, ?string $prefixMode = null, ?string $salt = null)
+    /**
+     * @param  list<string>|null  $fallbackSalts  defaults to hashids.previous_salts
+     */
+    public function __construct(?string $prefix = null, ?string $prefixMode = null, ?string $salt = null, ?array $fallbackSalts = null)
     {
         // null and '' both mean "no prefix" (e.g. HASH_PREFIX= or HASH_PREFIX=null in .env)
         $this->prefix = (string) ($prefix ?? config('hashids.prefix'));
         $this->prefixMode = $prefixMode ?? config('hashids.prefix_mode') ?? self::PREFIX_STRICT;
         $this->salt = (string) ($salt ?? config('hashids.salt'));
+        $this->fallbackSalts = array_values(array_unique(array_diff(
+            array_map('strval', $fallbackSalts ?? static::previousSalts()),
+            [$this->salt],
+        )));
+
+        if (1 === preg_match('/[\/?#%\s]/', $this->prefix)) {
+            throw new InvalidArgumentException(sprintf(
+                'Invalid hashids.prefix [%s]. It must not contain "/", "?", "#", "%%" or spaces, because these break URLs.',
+                $this->prefix,
+            ));
+        }
 
         if (! in_array($this->prefixMode, [self::PREFIX_STRICT, self::PREFIX_OPTIONAL], true)) {
             throw new InvalidArgumentException(sprintf(
@@ -84,12 +113,25 @@ class IdHasherManager
         }
 
         if ($throw && ! config('hashids.disable_exception', false)) {
-            $class = config('hashids.exception', InvalidHashIdException::class);
-
-            throw new $class(config('hashids.exception_message', 'The given hash id is invalid.'));
+            throw $this->makeException();
         }
 
         return null;
+    }
+
+    protected function makeException(): Throwable
+    {
+        $class = config('hashids.exception', InvalidHashIdException::class);
+        $message = (string) config('hashids.exception_message', 'The given hash id is invalid.');
+
+        if (! is_string($class) || ! is_a($class, Throwable::class, true)) {
+            throw new InvalidArgumentException(sprintf(
+                'Invalid hashids.exception [%s]. It must be the class name of an exception.',
+                is_string($class) ? $class : get_debug_type($class),
+            ));
+        }
+
+        return new $class($message);
     }
 
     public function prefix(): string
@@ -107,19 +149,93 @@ class IdHasherManager
         $this->hasher = $hasher;
     }
 
+    /**
+     * @return list<string>
+     */
+    public function fallbackSalts(): array
+    {
+        return $this->fallbackSalts;
+    }
+
+    public function usesDefaultSalt(): bool
+    {
+        return '' === $this->salt || self::DEFAULT_SALT === $this->salt;
+    }
+
     protected function hasher(): Hashids
     {
-        if (null === $this->hasher) {
-            if (! $this->hasMathExtension()) {
-                throw new RuntimeException(
-                    'Missing required PHP extension: either GMP or BCMath must be installed for hashids/hashids to work.'
-                );
-            }
+        return $this->hasher ??= $this->makeHashids($this->salt);
+    }
 
-            $this->hasher = new Hashids($this->salt, (int) config('hashids.length', 0), config('hashids.alphabet'));
+    /**
+     * @return list<Hashids>
+     */
+    protected function fallbackHashers(): array
+    {
+        return $this->fallbackHashers ??= array_map(fn (string $salt) => $this->makeHashids($salt), $this->fallbackSalts);
+    }
+
+    protected function makeHashids(string $salt): Hashids
+    {
+        if (! $this->hasMathExtension()) {
+            throw new RuntimeException(
+                'Missing required PHP extension: either GMP or BCMath must be installed for hashids/hashids to work.'
+            );
         }
 
-        return $this->hasher;
+        $length = config('hashids.length', 0);
+
+        if (! is_numeric($length) || (int) $length < 0 || (int) $length != $length) {
+            throw new InvalidArgumentException(sprintf('Invalid hashids.length [%s]. It must be an integer of 0 or more.', $length));
+        }
+
+        $alphabet = (string) config('hashids.alphabet');
+
+        try {
+            $hashids = new Hashids($salt, (int) $length, $alphabet);
+        } catch (InvalidArgumentException $e) {
+            throw new InvalidArgumentException(sprintf('Invalid hashids.alphabet [%s]: %s', $alphabet, $e->getMessage()), 0, $e);
+        }
+
+        $this->warnAboutDefaultSalt();
+
+        return $hashids;
+    }
+
+    /**
+     * Logs once per process in production, so the default salt is noticed.
+     */
+    protected function warnAboutDefaultSalt(): void
+    {
+        if (self::$warnedAboutDefaultSalt || ! $this->usesDefaultSalt() || ! app()->isProduction()) {
+            return;
+        }
+
+        self::$warnedAboutDefaultSalt = true;
+
+        logger()->warning('laravel-hashid uses the default salt. Set HASH_SALT in your .env, otherwise your hashes can be decoded by anyone.');
+    }
+
+    /**
+     * @internal for tests
+     */
+    public static function resetDefaultSaltWarning(): void
+    {
+        self::$warnedAboutDefaultSalt = false;
+    }
+
+    /**
+     * @return list<string>
+     */
+    protected static function previousSalts(): array
+    {
+        $salts = config('hashids.previous_salts', []);
+
+        if (is_string($salts)) {
+            $salts = explode(',', $salts);
+        }
+
+        return array_values(array_filter(array_map('trim', (array) $salts), fn (string $salt) => '' !== $salt));
     }
 
     protected function hasMathExtension(): bool
@@ -141,9 +257,19 @@ class IdHasherManager
             $prefix = method_exists($model, 'hashIdPrefix') ? $model->hashIdPrefix() : null;
         }
 
-        $salt = config('hashids.per_model', true) ? $this->salt.'|'.$key : $this->salt;
+        if (! config('hashids.per_model', true)) {
+            return new static($prefix ?? $this->prefix, $this->prefixMode, $this->salt, $this->fallbackSalts);
+        }
 
-        return new static($prefix ?? $this->prefix, $this->prefixMode, $salt);
+        // previous salts with the model key, so a salt rotation also works per model
+        $fallbacks = array_map(fn (string $salt) => $salt.'|'.$key, $this->fallbackSalts);
+
+        // hashes of 1.x (or per_model disabled): global salt without the model key
+        if (config('hashids.accept_legacy_hashes', false)) {
+            $fallbacks = [...$fallbacks, $this->salt, ...$this->fallbackSalts];
+        }
+
+        return new static($prefix ?? $this->prefix, $this->prefixMode, $this->salt.'|'.$key, $fallbacks);
     }
 
     protected function decodeWithPrefix(string $hash): ?int
@@ -174,7 +300,26 @@ class IdHasherManager
             return null;
         }
 
-        $result = $this->hasher()->decode($hash);
+        $id = $this->decodeWith($this->hasher(), $hash);
+
+        if (null !== $id || [] === $this->fallbackSalts) {
+            return $id;
+        }
+
+        foreach ($this->fallbackHashers() as $hasher) {
+            if (null !== $id = $this->decodeWith($hasher, $hash)) {
+                return $id;
+            }
+        }
+
+        return null;
+    }
+
+    protected function decodeWith(Hashids $hasher, string $hash): ?int
+    {
+        // The PHPDoc of Hashids says list<int>, but numbers larger than PHP_INT_MAX
+        // are returned as strings (see phpstan.neon.dist: treatPhpDocTypesAsCertain).
+        $result = $hasher->decode($hash);
 
         if (1 !== count($result) || ! is_int($result[0])) {
             return null;

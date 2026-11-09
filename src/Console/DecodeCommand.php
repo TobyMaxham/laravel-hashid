@@ -26,7 +26,8 @@ class DecodeCommand extends Command
         $rows = [];
         $failed = false;
 
-        foreach ($this->argument('hash') as $hash) {
+        foreach ((array) $this->argument('hash') as $hash) {
+            $hash = (string) $hash;
             $id = $hasher->decodeId($hash, false);
             $failed = $failed || null === $id;
             $rows[] = [$hash, $id ?? '<error>invalid</error>'];

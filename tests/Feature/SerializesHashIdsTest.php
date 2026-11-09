@@ -34,10 +34,10 @@ it('keeps relations working', function () {
     $product = SerializedProduct::create(['name' => 'Laptop']);
     $review = SerializedReview::create(['product_id' => $product->id, 'body' => 'Great']);
 
-    $loaded = SerializedReview::with('product')->find($review->id);
+    $loaded = SerializedReview::with('serializedProduct')->find($review->id);
 
-    expect($loaded->product->is($product))->toBeTrue()
-        ->and($loaded->toArray()['product']['id'])->toBe($product->hashID());
+    expect($loaded->serializedProduct->is($product))->toBeTrue()
+        ->and($loaded->toArray()['serialized_product']['id'])->toBe($product->hashID());
 });
 
 it('hashes collections', function () {

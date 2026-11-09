@@ -31,7 +31,7 @@ class HashIdExists extends HashId
     /**
      * Add constraints to the query, e.g. fn (Builder $query) => $query->where('active', true).
      *
-     * @param  Closure(Builder): mixed  $callback
+     * @param  Closure(Builder<Model>): mixed  $callback
      */
     public function where(Closure $callback): static
     {
@@ -52,8 +52,9 @@ class HashIdExists extends HashId
 
     protected function exists(int $id): bool
     {
-        /** @var Builder $query */
-        $query = (new $this->model)->newQuery()->whereKey($id);
+        /** @var class-string<Model> $model */
+        $model = $this->model;
+        $query = (new $model)->newQuery()->whereKey($id);
 
         if (null !== $this->using) {
             ($this->using)($query);

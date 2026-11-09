@@ -14,6 +14,7 @@ _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 - All classes use `declare(strict_types=1)`
 - Default exception is `InvalidHashIdException` (extends `WrongIdException`) with the message "The given hash id is invalid."
 - `WrongIdException` is deprecated
+- The config is validated: a prefix with `/`, `?`, `#`, `%` or spaces, an invalid `length` or `exception` throw an `InvalidArgumentException`
 
 - **All hashes change:** every model gets its own hashes (`per_model`, enabled by default). Set `HASH_PER_MODEL=false` to keep the 1.x hashes
 - `Hasher` adds new methods and scopes (see [UPGRADING.md](UPGRADING.md)), which can collide with existing methods of your models
@@ -44,6 +45,10 @@ _Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
 - Request macros `$request->hashId()` and `$request->hashIds()`
 - Trait `SerializesHashIds` for hashes in `toArray()` / JSON, incl. foreign keys
 - Artisan commands `hashid:encode` and `hashid:decode`
+- Salt rotation: `previous_salts` (`HASH_PREVIOUS_SALTS`) are accepted when decoding
+- `accept_legacy_hashes` (`HASH_ACCEPT_LEGACY`) accepts the 1.x hashes during the upgrade
+- Warning in the log (production) and in `php artisan about` when the default salt is used
+- PHPStan (Larastan, level 8) in the CI
 - Query scopes: `whereHashId()`, `orWhereHashId()`, `whereHashIdIn()`, `whereHashIdNot()`, `whereHashIdNotIn()`
 - Empty prefix (`HASH_PREFIX=` or `HASH_PREFIX=null`) is now officially supported and documented
 

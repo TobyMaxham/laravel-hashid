@@ -1,0 +1,11 @@
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 8
+    paths:
+        - src
+        - tests/Fixtures
+    tmpDir: build/phpstan
+    # Hashids::decode() is documented as list<int>, but returns strings for numbers > PHP_INT_MAX.
+    treatPhpDocTypesAsCertain: false

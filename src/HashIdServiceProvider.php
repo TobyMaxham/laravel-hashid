@@ -10,6 +10,7 @@ use Illuminate\Support\ServiceProvider;
 use TobyMaxham\HashId\Facades\IdHasher;
 use TobyMaxham\HashId\Console\DecodeCommand;
 use TobyMaxham\HashId\Console\EncodeCommand;
+use Illuminate\Foundation\Console\AboutCommand;
 
 class HashIdServiceProvider extends ServiceProvider
 {
@@ -31,9 +32,31 @@ class HashIdServiceProvider extends ServiceProvider
 
         if ($this->app->runningInConsole()) {
             $this->commands([EncodeCommand::class, DecodeCommand::class]);
+            $this->registerAboutCommand();
         }
 
         $this->registerRequestMacros();
+    }
+
+    /**
+     * Shows the config in "php artisan about", incl. a warning for the default salt.
+     */
+    protected function registerAboutCommand(): void
+    {
+        AboutCommand::add('Laravel HashID', function () {
+            $manager = $this->app->make(IdHasherManager::class);
+
+            return [
+                'Salt' => $manager->usesDefaultSalt()
+                    ? '<fg=red;options=bold>DEFAULT (insecure, set HASH_SALT)</>'
+                    : '<fg=green;options=bold>CUSTOM</>',
+                'Previous salts' => (string) count($manager->fallbackSalts()),
+                'Prefix'         => '' === $manager->prefix() ? '<fg=yellow>none</>' : $manager->prefix(),
+                'Prefix mode'    => $manager->prefixMode(),
+                'Per model'      => AboutCommand::format(config('hashids.per_model', true), console: fn ($value) => $value ? '<fg=green;options=bold>ENABLED</>' : '<fg=yellow;options=bold>OFF</>'),
+                'Legacy hashes'  => AboutCommand::format(config('hashids.accept_legacy_hashes', false), console: fn ($value) => $value ? '<fg=yellow;options=bold>ACCEPTED</>' : 'OFF'),
+            ];
+        });
     }
 
     /**

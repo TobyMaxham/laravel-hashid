@@ -26,7 +26,8 @@ class EncodeCommand extends Command
         $rows = [];
         $failed = false;
 
-        foreach ($this->argument('id') as $id) {
+        foreach ((array) $this->argument('id') as $id) {
+            $id = (string) $id;
             $valid = ctype_digit($id);
             $failed = $failed || ! $valid;
             $rows[] = [$id, $valid ? $hasher->encodeId($id) : '<error>not an integer</error>'];
