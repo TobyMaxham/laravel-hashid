@@ -1,40 +1,55 @@
 {
     "name": "tobymaxham/laravel-hashid",
-    "description": "This package enables support for hashed ID's in your laravel application.",
+    "description": "Hashed IDs for Laravel: hide your database IDs in URLs, route model binding, queries, validation and JSON.",
     "keywords": [
         "TobyMaxham",
         "laravel",
-        "hashid"
+        "hashid",
+        "hashids",
+        "obfuscation",
+        "route-model-binding",
+        "eloquent"
     ],
     "homepage": "https://github.com/TobyMaxham/laravel-hashid",
     "license": "MIT",
     "authors": [
         {
-            "name": ":TobyMaxham",
-            "email": "git@maxham.de",
+            "name": "TobyMaxham",
+            "email": "git@maxham.net",
             "role": "Developer"
         }
     ],
     "require": {
-        "php": "^8.2|^8.3|^8.4",
-        "hashids/hashids": "^4.1",
-        "illuminate/support": "^10.0|^11.0|^12.0|^13.0",
-        "illuminate/database": "^10.0|^11.0|^12.0|^13.0"
+        "php": "^8.3",
+        "hashids/hashids": "^5.0",
+        "illuminate/database": "^12.0|^13.0",
+        "illuminate/support": "^12.0|^13.0"
     },
     "autoload": {
         "psr-4": {
             "TobyMaxham\\HashId\\": "src"
         }
     },
+    "autoload-dev": {
+        "psr-4": {
+            "TobyMaxham\\HashId\\Tests\\": "tests"
+        }
+    },
     "require-dev": {
-        "laravel/pint": "^1.21"
+        "larastan/larastan": "^3.0",
+        "laravel/pint": "^1.21",
+        "orchestra/testbench": "^10.0|^11.0",
+        "pestphp/pest": "^4.0"
     },
     "suggest": {
         "ext-gmp": "Recommended for best performance with hashids/hashids.",
         "ext-bcmath": "Alternative to GMP. At least one is required."
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
     },
     "extra": {
         "laravel": {
@@ -44,7 +59,10 @@
         }
     },
     "scripts": {
-        "cs-fix": "./vendor/bin/pint src/"
+        "test": "vendor/bin/pest",
+        "test-coverage": "XDEBUG_MODE=coverage vendor/bin/pest --coverage",
+        "cs-fix": "./vendor/bin/pint src/ tests/",
+        "analyse": "vendor/bin/phpstan analyse --memory-limit=1G"
     },
     "minimum-stability": "dev",
     "prefer-stable": true

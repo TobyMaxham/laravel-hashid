@@ -1,0 +1,121 @@
+<?php
+
+declare(strict_types=1);
+
+use Illuminate\Support\Facades\Route;
+use TobyMaxham\HashId\Facades\IdHasher;
+use TobyMaxham\HashId\Tests\Fixtures\Review;
+use TobyMaxham\HashId\Tests\Fixtures\Product;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+
+beforeEach(function () {
+    Route::middleware(SubstituteBindings::class)->group(function () {
+        Route::get('products/{product}', fn (Product $product) => $product->name)->name('products.show');
+        Route::get('trashed/{product}', fn (Product $product) => $product->name)->withTrashed();
+        Route::get('slug/{product:slug}', fn (Product $product) => $product->name);
+        Route::get('products/{product}/reviews/{review}', fn (Product $product, Review $review) => $review->body)->scopeBindings();
+    });
+});
+
+it('generates urls with the hash', function () {
+    $product = Product::create(['name' => 'A']);
+
+    expect(route('products.show', $product))->toEndWith('/products/'.$product->hashID());
+});
+
+it('resolves a model from the hash', function () {
+    $product = Product::create(['name' => 'Laptop']);
+
+    $this->get('products/'.$product->hashID())->assertOk()->assertSee('Laptop');
+});
+
+it('returns 404 for invalid values', function (string $value) {
+    Product::create(['name' => 'Laptop']);
+
+    $this->get('products/'.$value)->assertNotFound();
+})->with([
+    'raw id'      => '1',
+    'garbage'     => 'h:invalid',
+    'unknown id'  => fn () => IdHasher::for(Product::class)->encodeId(999),
+    'global hash' => fn () => IdHasher::encodeId(1),
+]);
+
+it('works without a prefix', function () {
+    $this->setHashConfig(['prefix' => '']);
+    $product = Product::create(['name' => 'Laptop']);
+
+    expect($product->hashID())->not->toContain(':');
+    $this->get('products/'.$product->hashID())->assertOk()->assertSee('Laptop');
+});
+
+it('returns 404 for soft deleted models', function () {
+    $product = Product::create(['name' => 'Laptop']);
+    $product->delete();
+
+    $this->get('products/'.$product->hashID())->assertNotFound();
+});
+
+// Route binding cases that were broken in 1.x (see CHANGELOG 2.0.0, Fixed).
+
+it('resolves routes with a custom field like {product:slug}', function () {
+    Product::create(['name' => 'Laptop', 'slug' => 'laptop']);
+
+    $this->get('slug/laptop')->assertOk()->assertSee('Laptop');
+});
+
+it('resolves scoped child bindings', function () {
+    $product = Product::create(['name' => 'Laptop']);
+    $review = $product->reviews()->create(['body' => 'Great']);
+
+    $this->get("products/{$product->hashID()}/reviews/{$review->hashID()}")->assertOk()->assertSee('Great');
+});
+
+it('accepts the safeHashID in routes in optional mode (issue #6)', function () {
+    $this->setHashConfig(['prefix_mode' => 'optional']);
+    $product = Product::create(['name' => 'Laptop']);
+
+    $this->get('products/'.$product->safeHashID())->assertOk()->assertSee('Laptop');
+    $this->get('products/'.$product->hashID())->assertOk()->assertSee('Laptop');
+    expect(route('products.show', $product))->toEndWith('/products/'.$product->hashID());
+});
+
+it('rejects the safeHashID in routes in strict mode', function () {
+    $product = Product::create(['name' => 'Laptop']);
+
+    $this->get('products/'.$product->safeHashID())->assertNotFound();
+});
+
+it('accepts the safeHashID in scoped child bindings in optional mode', function () {
+    $this->setHashConfig(['prefix_mode' => 'optional']);
+    $product = Product::create(['name' => 'Laptop']);
+    $review = $product->reviews()->create(['body' => 'Great']);
+
+    $this->get("products/{$product->safeHashID()}/reviews/{$review->safeHashID()}")->assertOk()->assertSee('Great');
+});
+
+it('resolves soft deleted models on withTrashed routes', function () {
+    $product = Product::create(['name' => 'Laptop']);
+    $product->delete();
+
+    $this->get('trashed/'.$product->hashID())->assertOk()->assertSee('Laptop');
+});
+
+it('returns 404 for a child that belongs to another parent', function () {
+    $product = Product::create(['name' => 'Laptop']);
+    $other = Product::create(['name' => 'Phone']);
+    $review = $other->reviews()->create(['body' => 'Great']);
+
+    $this->get("products/{$product->hashID()}/reviews/{$review->hashID()}")->assertNotFound();
+});
+
+it('returns 404 for an invalid child hash', function () {
+    $product = Product::create(['name' => 'Laptop']);
+
+    $this->get("products/{$product->hashID()}/reviews/h:invalid")->assertNotFound();
+});
+
+it('returns 404 for an unknown custom field value', function () {
+    Product::create(['name' => 'Laptop', 'slug' => 'laptop']);
+
+    $this->get('slug/phone')->assertNotFound();
+});
