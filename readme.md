@@ -20,6 +20,8 @@ Instead, they are encoded and, for example, `products/34` is converted to `produ
 
 Use version `1.x` for older PHP or Laravel versions.
 
+**Upgrading from 1.x?** Version 2.0 changes all hashes by default. Please read the [upgrade guide](UPGRADING.md) first.
+
 
 ## Installation
 
@@ -40,7 +42,7 @@ Publish the configuration file with:
 php artisan vendor:publish --tag=hashid-config
 ```
 
-For example, the configuration file `config/hashids.php` looks like this:
+The configuration file `config/hashids.php` looks like this (every option is explained in the file):
 
 ```php
 return [
@@ -83,6 +85,8 @@ Hashes are always **generated** with the prefix. `safeHashID()` returns the hash
 
 ### Using the Facade
 
+These methods use the global salt. For the hashes of a model use `IdHasher::for(Product::class)` (see [Hashes per model](#hashes-per-model)).
+
 ```php
 use \TobyMaxham\HashId\Facades\IdHasher;
 
@@ -106,13 +110,15 @@ If you prefer to use dependency injection:
 ```php
 use TobyMaxham\HashId\IdHasherManager;
 
-public function show(IdHasherManager $idHasher, $hash)
+public function show(IdHasherManager $idHasher, string $hash)
 {
-    $id = $idHasher->decodeId($hash);
+    $id = $idHasher->for(Product::class)->decodeId($hash);
 
     return Product::findOrFail($id);
 }
 ```
+
+For models with the `Hasher` trait, `Product::findByHashIdOrFail($hash)` is shorter (see [Queries](#queries)).
 
 ### Automatically Decode Hash IDs
 
@@ -133,7 +139,7 @@ Now you can use them in routes:
 
 ```php
 // web.php
-Route::get('products/{product}', 'ProductController@show');
+Route::get('products/{product}', [ProductController::class, 'show']);
 
 
 // ProductController.php
@@ -159,6 +165,60 @@ $product->safeHashID(); // J7dVgYxKPwyQejOMnL
 ```
 
 > Hashing only works for integer keys. Do not combine `Hasher` with `HasUuids` or `HasUlids`.
+
+### Hashes per model
+
+Every model gets its own hashes, so user `400` and post `400` have different hashes.
+A hash of one model can not be used for another model (the route returns a 404).
+
+The model key is added to the salt. By default it is the table name.
+Set your own key, so the hashes stay the same when you rename the table:
+
+```php
+class User extends Model
+{
+    use Hasher;
+
+    // any of these:
+    public const HASH_ID_KEY = 'user';
+    protected string $hashIdKey = 'user';
+
+    public function hashIdKey(): string
+    {
+        return 'user';
+    }
+}
+```
+
+> Changing the key changes all hashes of the model.
+
+**Prefix per model:** works the same way with `HASH_ID_PREFIX`, `$hashIdPrefix` or `hashIdPrefix()`.
+`null` uses the global prefix, `''` disables the prefix for this model.
+
+```php
+class User extends Model
+{
+    use Hasher;
+
+    public const HASH_ID_PREFIX = 'usr_'; // usr_J7dVgYxKPwyQejOMnL
+}
+```
+
+**Outside of models**, get the hasher of a model with `IdHasher::for()`:
+
+```php
+IdHasher::for(User::class)->encodeId(400);
+IdHasher::for($user)->decodeId($hash);
+IdHasher::for('users')->encodeId(400); // custom key
+```
+
+`IdHasher::encodeId()` without `for()` uses the global salt.
+
+To use the same hashes for all models (like 1.x), disable it:
+
+```dotenv
+HASH_PER_MODEL=false
+```
 
 ### Queries
 
@@ -250,60 +310,6 @@ Without `--model` the global salt is used.
 
 `IdHasher::decodeId()` throws `InvalidHashIdException` for invalid hashes (configurable with `exception` and `exception_message`, or disabled with `disable_exception`).
 Pass `false` as second argument to get `null` instead: `IdHasher::decodeId($hash, false)`.
-
-### Hashes per model
-
-Every model gets its own hashes, so user `400` and post `400` have different hashes.
-A hash of one model can not be used for another model (the route returns a 404).
-
-The model key is added to the salt. By default it is the table name.
-Set your own key, so the hashes stay the same when you rename the table:
-
-```php
-class User extends Model
-{
-    use Hasher;
-
-    // any of these:
-    public const HASH_ID_KEY = 'user';
-    protected string $hashIdKey = 'user';
-
-    public function hashIdKey(): string
-    {
-        return 'user';
-    }
-}
-```
-
-> Changing the key changes all hashes of the model.
-
-**Prefix per model:** works the same way with `HASH_ID_PREFIX`, `$hashIdPrefix` or `hashIdPrefix()`.
-`null` uses the global prefix, `''` disables the prefix for this model.
-
-```php
-class User extends Model
-{
-    use Hasher;
-
-    public const HASH_ID_PREFIX = 'usr_'; // usr_J7dVgYxKPwyQejOMnL
-}
-```
-
-**Outside of models**, get the hasher of a model with `IdHasher::for()`:
-
-```php
-IdHasher::for(User::class)->encodeId(400);
-IdHasher::for($user)->decodeId($hash);
-IdHasher::for('users')->encodeId(400); // custom key
-```
-
-`IdHasher::encodeId()` without `for()` uses the global salt.
-
-To use the same hashes for all models (like 1.x), disable it:
-
-```dotenv
-HASH_PER_MODEL=false
-```
 
 ## Security
 

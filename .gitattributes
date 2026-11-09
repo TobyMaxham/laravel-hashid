@@ -8,7 +8,6 @@
 /phpunit.xml.dist   export-ignore
 /phpstan.neon.dist  export-ignore
 /pint.json          export-ignore
-/New-Version.md     export-ignore
 /tests              export-ignore
 /.editorconfig      export-ignore
 /.github            export-ignore

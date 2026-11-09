@@ -55,7 +55,7 @@ it('returns 404 for soft deleted models', function () {
     $this->get('products/'.$product->hashID())->assertNotFound();
 });
 
-// Known bugs, see New-Version.md section 9. Remove skip() once fixed.
+// Route binding cases that were broken in 1.x (see CHANGELOG 2.0.0, Fixed).
 
 it('resolves routes with a custom field like {product:slug}', function () {
     Product::create(['name' => 'Laptop', 'slug' => 'laptop']);

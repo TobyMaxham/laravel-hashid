@@ -1,10 +1,14 @@
 {
     "name": "tobymaxham/laravel-hashid",
-    "description": "This package enables support for hashed ID's in your laravel application.",
+    "description": "Hashed IDs for Laravel: hide your database IDs in URLs, route model binding, queries, validation and JSON.",
     "keywords": [
         "TobyMaxham",
         "laravel",
-        "hashid"
+        "hashid",
+        "hashids",
+        "obfuscation",
+        "route-model-binding",
+        "eloquent"
     ],
     "homepage": "https://github.com/TobyMaxham/laravel-hashid",
     "license": "MIT",

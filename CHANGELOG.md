@@ -2,67 +2,57 @@
 
 All notable changes to `tobymaxham/laravel-hashid` will be documented in this file
 
-## 2.0 - Unreleased
+## 2.0.0 - 2026-11-09
+
+Major release with breaking changes. Please read the [upgrade guide](UPGRADING.md).
 
 ### Breaking Changes
 
-_Every breaking change is also described in [UPGRADING.md](UPGRADING.md)._
-
-- Requires PHP 8.3 or higher
-- Requires Laravel 12 or 13 (dropped Laravel 10 and 11)
-- Requires `hashids/hashids` 5 (the generated hashes are identical to version 4)
-- All classes use `declare(strict_types=1)`
-- Default exception is `InvalidHashIdException` (extends `WrongIdException`) with the message "The given hash id is invalid."
-- `WrongIdException` is deprecated
-- The config is validated: a prefix with `/`, `?`, `#`, `%` or spaces, an invalid `length` or `exception` throw an `InvalidArgumentException`
-
-- **All hashes change:** every model gets its own hashes (`per_model`, enabled by default). Set `HASH_PER_MODEL=false` to keep the 1.x hashes
-- `Hasher` adds new methods and scopes (see [UPGRADING.md](UPGRADING.md)), which can collide with existing methods of your models
-- `IdHasherManager` is registered as singleton and creates its hasher itself (new constructor argument `$salt`)
-- The missing GMP/BCMath extension is reported on the first hash instead of on application boot
-- The config file is published with the tag `hashid-config`
-
-- `Hasher` now overrides `resolveRouteBindingQuery()` instead of `resolveRouteBinding()`
-- An invalid hash in `resolveRouteBinding()` now throws `ModelNotFoundException` instead of returning `null` (no database query is made)
+- **All hashes change:** every model gets its own hashes (`per_model`, enabled by default). Use `HASH_ACCEPT_LEGACY=true` to accept the old hashes during the upgrade, or `HASH_PER_MODEL=false` to keep them
+- Requires PHP 8.3+, Laravel 12 or 13 and `hashids/hashids` 5 (dropped PHP 8.2, Laravel 10 and 11; the hashes of `hashids/hashids` 5 are identical to 4)
+- Route binding: `Hasher` overrides `resolveRouteBindingQuery()` instead of `resolveRouteBinding()`; an invalid hash throws `ModelNotFoundException` instead of returning `null`
 - `Hasher` can no longer be combined with Laravel's `HasUuids` / `HasUlids` traits
+- `Hasher` adds new methods and scopes, which can collide with methods of your models
+- Default exception is `InvalidHashIdException` (extends the now deprecated `WrongIdException`) with the message "The given hash id is invalid."
 - `safeHashID()` returns a `string` instead of a `Stringable`
-- `IdHasherManager::decodeId()` only accepts hashes of exactly one integer (hashes of several numbers or numbers larger than `PHP_INT_MAX` are invalid)
-- `IdHasherManager` has typed parameters and return types
+- `decodeId()` only accepts hashes of exactly one integer
+- The config is validated (prefix, `length`, `alphabet`, `exception`)
+- `IdHasherManager` is a singleton, creates its hasher itself and has a new constructor and typed methods
+- The config file is published with the tag `hashid-config`
+- All classes use `declare(strict_types=1)`
 
 ### Added
 
-- Test suite with Pest and Orchestra Testbench
-- GitHub Actions workflow for tests and code style
-- Fixed reference hashes in the tests, so a change of the generated hashes is detected
-- New config option `prefix_mode` (`HASH_PREFIX_MODE`): `strict` (default) or `optional` to accept hashes with and without prefix (#6)
-- `IdHasher::encodeIdWithoutPrefix()`, `IdHasher::prefix()`, `IdHasher::prefixMode()`
-- Hashes per model: new config option `per_model` (`HASH_PER_MODEL`), model key via `hashIdKey()`, `HASH_ID_KEY` or `$hashIdKey` (default: table name)
-- Prefix per model via `hashIdPrefix()`, `HASH_ID_PREFIX` or `$hashIdPrefix`
-- `IdHasher::for($model)` to get the hasher of a model or a custom key
-- Query methods: `findByHashId()`, `findByHashIdOrFail()`, `findManyByHashIds()`, `decodeHashId()`, `decodeHashIds()`
-- Interface `HasHashId` (extends `Hashing`), implemented by `ModelWithHasher`
-- Validation rules `HashId` and `HashIdExists` (with `where()` for constraints)
+- Hashes per model with a model key (`hashIdKey()`, `HASH_ID_KEY`, `$hashIdKey`, default: table name)
+- Prefix per model (`hashIdPrefix()`, `HASH_ID_PREFIX`, `$hashIdPrefix`)
+- `IdHasher::for($model)` for the hasher of a model or a custom key
+- `prefix_mode` (`HASH_PREFIX_MODE`): `strict` (default) or `optional` to accept hashes with and without prefix (#6)
+- Empty prefix (`HASH_PREFIX=`) is officially supported
+- Query methods `findByHashId()`, `findByHashIdOrFail()`, `findManyByHashIds()`, `decodeHashId()`, `decodeHashIds()`
+- Query scopes `whereHashId()`, `orWhereHashId()`, `whereHashIdIn()`, `whereHashIdNot()`, `whereHashIdNotIn()`
+- Validation rules `HashId` and `HashIdExists`
 - Request macros `$request->hashId()` and `$request->hashIds()`
 - Trait `SerializesHashIds` for hashes in `toArray()` / JSON, incl. foreign keys
+- Interface `HasHashId` (extends `Hashing`)
 - Artisan commands `hashid:encode` and `hashid:decode`
-- Salt rotation: `previous_salts` (`HASH_PREVIOUS_SALTS`) are accepted when decoding
-- `accept_legacy_hashes` (`HASH_ACCEPT_LEGACY`) accepts the 1.x hashes during the upgrade
+- Salt rotation with `previous_salts` (`HASH_PREVIOUS_SALTS`)
+- `accept_legacy_hashes` (`HASH_ACCEPT_LEGACY`) for the upgrade from 1.x
 - Warning in the log (production) and in `php artisan about` when the default salt is used
-- PHPStan (Larastan, level 8) in the CI
-- Query scopes: `whereHashId()`, `orWhereHashId()`, `whereHashIdIn()`, `whereHashIdNot()`, `whereHashIdNotIn()`
-- Empty prefix (`HASH_PREFIX=` or `HASH_PREFIX=null`) is now officially supported and documented
+- `IdHasher::encodeIdWithoutPrefix()`, `prefix()`, `prefixMode()`, `fallbackSalts()`, `usesDefaultSalt()`
+- Test suite (Pest, 100 % coverage), PHPStan level 8 and GitHub Actions workflow
 
 ### Fixed
 
-- Route bindings with a custom field (e.g. `{product:slug}`) no longer try to decode the value as a hash
-- Scoped child route bindings (e.g. `products/{product}/reviews/{review}`) now decode the hash
-- Routes with `->withTrashed()` now find soft deleted models by their hash
+- Route bindings with a custom field like `{product:slug}` no longer decode the value as a hash
+- Scoped child route bindings like `products/{product}/reviews/{review}` decode the hash
+- Routes with `->withTrashed()` find soft deleted models by their hash
+- A missing GMP/BCMath extension no longer breaks the whole application on boot, it is reported on the first hash
+- Hashes with several numbers or numbers larger than `PHP_INT_MAX` were accepted as id
+- Wrong class names and namespaces in the readme
 
 ### Changed
 
-- Updated `hashids/hashids` to 5.x
 - Hashers are cached per model
-- Fixed class names and namespaces in the readme
 - Contact email changed to `git@maxham.net`
 
 ## 1.1 - 2025-04-12
