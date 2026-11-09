@@ -2,6 +2,22 @@
 
 Version 2.0 contains breaking changes. Most apps only need the checklist, the sections below explain every change.
 
+## Upgrade with an AI agent
+
+The package ships step by step upgrade instructions for AI agents as [Agent Skill](resources/boost/skills/laravel-hashid-upgrade/SKILL.md).
+The agent searches your code, asks you before decisions like the [handling of old hashes](#all-hashes-change), updates the package and the code, runs your tests and does not commit.
+
+Paste this prompt into Claude Code, Cursor, Copilot or a similar agent:
+
+```text
+Upgrade tobymaxham/laravel-hashid from 1.x to 2.0. Follow the instructions in
+https://raw.githubusercontent.com/TobyMaxham/laravel-hashid/main/resources/boost/skills/laravel-hashid-upgrade/SKILL.md
+```
+
+With [Laravel Boost](https://laravel.com/docs/boost), the skill is installed with `php artisan boost:install` / `boost:update` once the package is on 2.x. Then ask your agent to "upgrade laravel-hashid".
+
+Always review the changes before you deploy them.
+
 ## Checklist
 
 1. Update to PHP 8.3+ and Laravel 12 or 13.

@@ -2,9 +2,23 @@
 
 All notable changes to `tobymaxham/laravel-hashid` will be documented in this file
 
+## Unreleased
+
+### Added
+
+- Upgrade instructions for AI agents as [Agent Skill](resources/boost/skills/laravel-hashid-upgrade/SKILL.md), automatically picked up by [Laravel Boost](https://laravel.com/docs/boost) (see [Upgrade with an AI agent](UPGRADING.md#upgrade-with-an-ai-agent))
+- [Laravel Boost guideline](resources/boost/guidelines/core.blade.php) with the recommended usage of the package for AI agents
+
 ## 2.0.0 - 2026-11-09
 
 Major release with breaking changes. Please read the [upgrade guide](UPGRADING.md).
+
+> **Upgrade with an AI agent:** paste this prompt into Claude Code, Cursor, Copilot or a similar agent:
+>
+> ```text
+> Upgrade tobymaxham/laravel-hashid from 1.x to 2.0. Follow the instructions in
+> https://raw.githubusercontent.com/TobyMaxham/laravel-hashid/main/resources/boost/skills/laravel-hashid-upgrade/SKILL.md
+> ```
 
 ### Breaking Changes
 
