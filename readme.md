@@ -20,7 +20,7 @@ Instead, they are encoded and, for example, `products/34` is converted to `produ
 
 Use version `1.x` for older PHP or Laravel versions.
 
-**Upgrading from 1.x?** Version 2.0 changes all hashes by default. Please read the [upgrade guide](UPGRADING.md) first.
+**Upgrading from 1.x?** Version 2.0 changes all hashes by default. Please read the [upgrade guide](UPGRADING.md) first, or let your [AI agent do the upgrade](UPGRADING.md#upgrade-with-an-ai-agent).
 
 
 ## Installation
