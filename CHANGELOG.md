@@ -2,7 +2,7 @@
 
 All notable changes to `tobymaxham/laravel-hashid` will be documented in this file
 
-## Unreleased
+## 2.0.2 - 2026-11-09
 
 ### Added
 
