@@ -10,13 +10,25 @@ use Illuminate\Database\Eloquent\Model;
 beforeEach(fn () => IdHasherManager::resetDefaultSaltWarning());
 
 describe('prefix', function () {
-    it('rejects characters that break urls', function (string $prefix) {
-        new IdHasherManager($prefix);
-    })->with(['h/', '?h', 'h#', 'h%', 'h ', "h\t"])->throws(InvalidArgumentException::class, 'Invalid hashids.prefix');
+    it('rejects characters that are not url safe', function (string $prefix) {
+        expect(fn () => new IdHasherManager($prefix))
+            ->toThrow(InvalidArgumentException::class, 'Invalid hashids.prefix ['.$prefix.']. Only letters (a-z, A-Z), digits and "-", ".", "_", "~", ":" are allowed');
+    })->with([
+        // break the route
+        'h/', '?h', 'h#', 'h%', 'h ', "h\t",
+        // need encoding in urls
+        'h<', 'h>', 'h"', 'h\\', 'h{', 'h}', 'h|', 'h^', 'h`', 'h[', 'h]', "h'",
+        // break query strings or forms
+        'h+', 'h&', 'h=', 'h;', 'h,', 'h@', 'h!', 'h$', 'h*', 'h(', 'h)',
+        // not ascii
+        'ä:', 'h€', "h\u{200B}",
+        // a trailing new line must not pass the check
+        "h\n",
+    ]);
 
-    it('accepts common prefixes', function (string $prefix) {
+    it('accepts url safe prefixes', function (string $prefix) {
         expect((new IdHasherManager($prefix))->prefix())->toBe($prefix);
-    })->with(['h:', 'usr_', 'p-', 'h.', '']);
+    })->with(['h:', 'usr_', 'p-', 'h.', 'h~', 'A1:', 'user_v2-', '']);
 
     it('also checks model prefixes', function () {
         $model = new class extends Model

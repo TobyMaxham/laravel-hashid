@@ -58,9 +58,10 @@ class IdHasherManager
             [$this->salt],
         )));
 
-        if (1 === preg_match('/[\/?#%\s]/', $this->prefix)) {
+        // Only characters that work everywhere in URLs without encoding (RFC 3986 "unreserved") plus ":".
+        if (1 !== preg_match('/^[A-Za-z0-9._~:-]*\z/', $this->prefix)) {
             throw new InvalidArgumentException(sprintf(
-                'Invalid hashids.prefix [%s]. It must not contain "/", "?", "#", "%%" or spaces, because these break URLs.',
+                'Invalid hashids.prefix [%s]. Only letters (a-z, A-Z), digits and "-", ".", "_", "~", ":" are allowed, other characters are not URL safe.',
                 $this->prefix,
             ));
         }

@@ -6,6 +6,7 @@ return [
     /*
      | Prefix for every hash, e.g. "h:" -> "h:J7dVgYxKPwyQejOMnL".
      | Set HASH_PREFIX= (empty) or HASH_PREFIX=null to use no prefix at all.
+     | Allowed characters: a-z, A-Z, 0-9 and - . _ ~ :
      */
     'prefix' => env('HASH_PREFIX', 'h:'),
 

@@ -76,7 +76,7 @@ Missing keys fall back to the package defaults, so `per_model` is enabled even i
 
 The config is validated now. These values throw an `InvalidArgumentException` (they did not work correctly before anyway):
 
-- a prefix with `/`, `?`, `#`, `%` or spaces (breaks URLs)
+- a prefix with other characters than letters, digits and `-` `.` `_` `~` `:` (e.g. `/`, `?`, `+`, `&`, spaces or umlauts are not URL safe)
 - a negative or non-integer `length`
 - an invalid `alphabet` (with the config key in the message)
 - an `exception` that is not an exception class

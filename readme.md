@@ -46,17 +46,17 @@ The configuration file `config/hashids.php` looks like this (every option is exp
 
 ```php
 return [
-    'prefix'            => env('HASH_PREFIX', 'h:'),
-    'prefix_mode'       => env('HASH_PREFIX_MODE', 'strict'),
-    'salt'              => env('HASH_SALT', 'your-salt-string'),
-    'previous_salts'    => env('HASH_PREVIOUS_SALTS', ''),
-    'per_model'         => env('HASH_PER_MODEL', true),
+    'prefix'               => env('HASH_PREFIX', 'h:'),
+    'prefix_mode'          => env('HASH_PREFIX_MODE', 'strict'),
+    'salt'                 => env('HASH_SALT', 'your-salt-string'),
+    'previous_salts'       => env('HASH_PREVIOUS_SALTS', ''),
+    'per_model'            => env('HASH_PER_MODEL', true),
     'accept_legacy_hashes' => env('HASH_ACCEPT_LEGACY', false),
-    'length'            => env('HASH_LENGTH', 18),
-    'alphabet'          => env('HASH_ALPHABET', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'),
-    'exception'         => \TobyMaxham\HashId\Exceptions\InvalidHashIdException::class,
-    'exception_message' => 'The given hash id is invalid.',
-    'disable_exception' => false,
+    'length'               => env('HASH_LENGTH', 18),
+    'alphabet'             => env('HASH_ALPHABET', 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'),
+    'exception'            => \TobyMaxham\HashId\Exceptions\InvalidHashIdException::class,
+    'exception_message'    => 'The given hash id is invalid.',
+    'disable_exception'    => false,
 ];
 ```
 
@@ -72,12 +72,15 @@ HASH_PREFIX=
 
 **Prefix mode:** `HASH_PREFIX_MODE` controls which hashes are accepted when decoding.
 
-| Mode | Accepts | Use case |
-|------|---------|----------|
-| `strict` (default) | only `h:J7dVgYxKPwyQejOMnL` | one format everywhere |
-| `optional` | `h:J7dVgYxKPwyQejOMnL` and `J7dVgYxKPwyQejOMnL` | prefix in public URLs, plain hash in APIs (`safeHashID()`) |
+| Mode               | Accepts                                         | Use case                                                   |
+|--------------------|-------------------------------------------------|------------------------------------------------------------|
+| `strict` (default) | only `h:J7dVgYxKPwyQejOMnL`                     | one format everywhere                                      |
+| `optional`         | `h:J7dVgYxKPwyQejOMnL` and `J7dVgYxKPwyQejOMnL` | prefix in public URLs, plain hash in APIs (`safeHashID()`) |
 
 Hashes are always **generated** with the prefix. `safeHashID()` returns the hash without the prefix.
+
+**Allowed characters:** letters (`a-z`, `A-Z`), digits and `-` `.` `_` `~` `:`. These work in URLs without encoding.
+Any other character (e.g. `/`, `?`, `+`, `&`, spaces or umlauts) throws an `InvalidArgumentException`. This also applies to prefixes per model.
 
 > The `:` in the default prefix is fine in URL paths. If a proxy or CDN encodes it, use a prefix like `h_` or `h-`.
 
@@ -325,7 +328,7 @@ Pass `false` as second argument to get `null` instead: `IdHasher::decodeId($hash
   HASH_PREVIOUS_SALTS=old-secret
   ```
 
-- The config is checked when the first hash is created: invalid `alphabet`, `length`, `exception` or a prefix with `/`, `?`, `#`, `%` or spaces throw an `InvalidArgumentException` with the config key in the message.
+- The config is checked when the first hash is created: an invalid `alphabet`, `length`, `exception` or a prefix with characters that are not URL safe throw an `InvalidArgumentException` with the config key in the message.
 - **Laravel Octane:** supported. The hasher only keeps data from the config, no request state.
 
 

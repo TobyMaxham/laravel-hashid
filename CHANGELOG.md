@@ -16,7 +16,7 @@ Major release with breaking changes. Please read the [upgrade guide](UPGRADING.m
 - Default exception is `InvalidHashIdException` (extends the now deprecated `WrongIdException`) with the message "The given hash id is invalid."
 - `safeHashID()` returns a `string` instead of a `Stringable`
 - `decodeId()` only accepts hashes of exactly one integer
-- The config is validated (prefix, `length`, `alphabet`, `exception`)
+- The config is validated (`length`, `alphabet`, `exception`); a prefix may only contain letters, digits and `-` `.` `_` `~` `:`
 - `IdHasherManager` is a singleton, creates its hasher itself and has a new constructor and typed methods
 - The config file is published with the tag `hashid-config`
 - All classes use `declare(strict_types=1)`
